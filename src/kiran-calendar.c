@@ -5,7 +5,7 @@
 
 #include "kiran-calendar.h"
 
-#define STANDER_DPI 72.0
+#define STANDER_DPI 96.0
 
 #define CALENDA_WIDTH 304
 #define CALENDA_HEIGHT 495
@@ -37,7 +37,7 @@
 #define MONTH_TEXT_AREA_HEIGHT 28
 #define MONTH_TEXT_AREA_LEFT_DIS (HEADER_TEXT_LEFT_DIS + 64)
 
-#define DAY_NAME_LEFT_DIS 26
+#define DAY_NAME_LEFT_DIS 28
 #define DAY_NAME_TOP_DIS (HEADER_TOP_DIS + 36)
 
 #define SEPARATE_LINE_TOP_DIS_1 (DAY_NAME_TOP_DIS + 16 + 20) 
@@ -45,8 +45,9 @@
 #define DAY_COL 7
 #define DAY_ROW 6
 #define DAY_ROW_SPACE 16
+#define DAY_COL_SPACE 2
 #define DAY_COL_LEFT_DIS 10
-#define DAY_RECT_WIDTH 40
+#define DAY_RECT_WIDTH 38
 #define DAY_RECT_HEIGHT 34
 #define DAY_RECT_LINE_WIDTH 2
 #define LUNAR_STR_LEN 256
@@ -718,7 +719,7 @@ calendar_day_rectangle (KiranCalendar *calendar,
                         gint           col,
                         GdkRectangle  *rect)
 {
-    rect->x = DAY_RECT_WIDTH * col + DAY_COL_LEFT_DIS; 
+    rect->x = (DAY_RECT_WIDTH + DAY_COL_SPACE) * col + DAY_COL_LEFT_DIS; 
     rect->y = (DAY_RECT_HEIGHT + DAY_ROW_SPACE) * row + DAY_ROW_TOP_DIS; 
     rect->height = DAY_RECT_HEIGHT + DAY_ROW_SPACE;
     rect->width = DAY_RECT_WIDTH; 
@@ -808,22 +809,28 @@ calendar_paint_day (KiranCalendar *calendar,
     if (priv->day_month[row][col] == MONTH_PREV ||
         priv->day_month[row][col] == MONTH_NEXT)
     {
-    	markup = g_strconcat ("<span foreground=\"#636363\" font_desc=\"Noto Sans CJK SC Light 12\">", buffer, "</span>", NULL);
-    	markup_lunar = g_strconcat ("<span foreground=\"#636363\" font_desc=\"Noto Sans CJK SC Light 10\">", buffer_lunar, "</span>", NULL);
+    	markup = g_strconcat ("<span foreground=\"#636363\" font_desc=\"Noto Sans CJK SC Light 10\">", buffer, "</span>", NULL);
+    	markup_lunar = g_strconcat ("<span foreground=\"#636363\" font_desc=\"Noto Sans CJK SC Light 8\">", buffer_lunar, "</span>", NULL);
 	state |= GTK_STATE_FLAG_INCONSISTENT;
     }
     else
     {
 	if (priv->selected_day == day)
 	{
+    	    GdkRectangle rect;
 	    day_rect.height = day_rect.height - DAY_ROW_SPACE;
-	    paint_round_rectangle (cr, &day_rect, 0.33, 0.54, 0.98, DAY_RECT_LINE_WIDTH, 0.33, 0.54, 0.98, 1, 2, TRUE, FALSE);
+
+	    rect.x = day_rect.x + 1;
+            rect.y = day_rect.y + 1;
+	    rect.width = day_rect.width - 2;
+	    rect.height = day_rect.height - 2;
+	    paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, DAY_RECT_LINE_WIDTH, 0.33, 0.54, 0.98, 1, 2, TRUE, FALSE);
 	    state |= GTK_STATE_FLAG_SELECTED;
 	    day_rect.height = day_rect.height + DAY_ROW_SPACE;
        
 	}
-    	markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Light 12\">", buffer, "</span>", NULL);
-    	markup_lunar = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Light 10\">", buffer_lunar, "</span>", NULL);
+    	markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Light 10\">", buffer, "</span>", NULL);
+    	markup_lunar = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Light 8\">", buffer_lunar, "</span>", NULL);
         if ( priv->year == 1900 + tm->tm_year &&
              priv->month ==  tm->tm_mon &&
              day == tm->tm_mday )
@@ -863,7 +870,7 @@ calendar_paint_day (KiranCalendar *calendar,
     pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
 
     x_loc = day_rect.x + (day_rect.width - logical_rect.width) / 2;
-    y_loc = day_rect.y + top_dis;
+    y_loc = day_rect.y + top_dis - 3;
 
     gtk_render_layout (context, cr, x_loc, y_loc, layout);
     g_free (markup_lunar);
@@ -934,14 +941,14 @@ calendar_paint_lunar (KiranCalendar *calendar,
 	if (i == 0)
         {
 	    if (priv->today_state == KIRAN_HOVER)
-	        markup = g_strconcat ("<span foreground=\"#97b8ff\" font_desc=\"Noto Sans CJK SC Regular 18\">", buffer, "</span>", NULL);
+	        markup = g_strconcat ("<span foreground=\"#97b8ff\" font_desc=\"Noto Sans CJK SC Regular 14\">", buffer, "</span>", NULL);
 	    else if (priv->today_state == KIRAN_PRESS)
-	        markup = g_strconcat ("<span foreground=\"#284fa3\" font_desc=\"Noto Sans CJK SC Regular 18\">", buffer, "</span>", NULL);
+	        markup = g_strconcat ("<span foreground=\"#284fa3\" font_desc=\"Noto Sans CJK SC Regular 14\">", buffer, "</span>", NULL);
 	    else
-	        markup = g_strconcat ("<span foreground=\"#568bfc\" font_desc=\"Noto Sans CJK SC Regular 18\">", buffer, "</span>", NULL);
+	        markup = g_strconcat ("<span foreground=\"#568bfc\" font_desc=\"Noto Sans CJK SC Regular 14\">", buffer, "</span>", NULL);
         }
 	else
-	    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 18\">", buffer, "</span>", NULL);
+	    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 14\">", buffer, "</span>", NULL);
 
 	layout = gtk_widget_create_pango_layout (widget, buffer);
         pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
@@ -1056,7 +1063,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
     else
         g_snprintf (buffer, sizeof (buffer),  "%.4d", priv->year);
 
-    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 14\">", buffer, "</span>", NULL);
+    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 11\">", buffer, "</span>", NULL);
     
     layout = gtk_widget_create_pango_layout (widget, buffer);
     pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
@@ -1106,7 +1113,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
     x_loc = x_loc + logical_rect.width;
 
     g_snprintf (buffer, sizeof (buffer),  "%s", "年");
-    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 14\">", buffer, "</span>", NULL);
+    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 11\">", buffer, "</span>", NULL);
     
     layout = gtk_widget_create_pango_layout (widget, buffer);
     pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
@@ -1126,7 +1133,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
     else
         g_snprintf (buffer, sizeof (buffer),  "%.2d", priv->month + 1);
 
-    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 14\">", buffer, "</span>", NULL);
+    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 11\">", buffer, "</span>", NULL);
     
     layout = gtk_widget_create_pango_layout (widget, buffer);
     pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
@@ -1173,7 +1180,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
     x_loc = x_loc + logical_rect.width;
 
     g_snprintf (buffer, sizeof (buffer),  "%s", "月");
-    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 14\">", buffer, "</span>", NULL);
+    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 11\">", buffer, "</span>", NULL);
     
     layout = gtk_widget_create_pango_layout (widget, buffer);
     pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
@@ -1222,7 +1229,7 @@ calendar_paint_daynames (KiranCalendar *calendar,
         gchar buffer[32];
 
 	g_snprintf (buffer, sizeof (buffer), "%s", default_abbreviated_dayname[i]);
-	markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 12\">", buffer, "</span>", NULL);
+	markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 10\">", buffer, "</span>", NULL);
 
 	layout = gtk_widget_create_pango_layout (widget, buffer);
         pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
