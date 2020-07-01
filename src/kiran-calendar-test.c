@@ -1,10 +1,33 @@
 #include <gtk/gtk.h>
+#include "kiran-calendar.h"
+
+#define CALENDA_WIDTH 304
+#define CALENDA_HEIGHT 495
+
+static void tran_setup (GtkWidget *window)
+{
+    GdkScreen *screen;
+    GdkVisual *visual;
+
+    gtk_widget_set_app_paintable (window, TRUE);
+    screen = gdk_screen_get_default ();
+    visual = gdk_screen_get_rgba_visual (screen);
+
+    if (visual != NULL && gdk_screen_is_composited (screen))
+    {
+        gtk_widget_set_visual (window, visual);
+    }
+}
 
 int
 main (int argc,
       char **argv)
 {
     GtkWidget *window;
+    GtkWidget *calendar;
+    int x, y;
+    GdkDisplay *display;
+    GdkRectangle monitor;
     GError *error = NULL;
 
     if (!gtk_init_with_args (&argc, &argv, NULL, NULL, NULL, &error))
@@ -17,8 +40,29 @@ main (int argc,
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title (GTK_WINDOW (window), "Test Calendar");
     gtk_window_set_position (GTK_WINDOW (window), GTK_WIN_POS_CENTER);
-    gtk_widget_set_size_request (window, 400, 400);
+    gtk_widget_set_size_request (window, CALENDA_WIDTH, CALENDA_HEIGHT);
+    gtk_window_set_resizable(GTK_WINDOW (window), FALSE);
+    gtk_window_set_deletable (GTK_WINDOW (window), FALSE);
+    gtk_window_set_decorated (GTK_WINDOW (window), FALSE);
+    gtk_window_set_skip_taskbar_hint (GTK_WINDOW (window), TRUE);
+    gtk_window_set_skip_pager_hint (GTK_WINDOW (window), TRUE);
+    gtk_window_stick (GTK_WINDOW (window));
+    gtk_container_set_border_width (GTK_CONTAINER (window), 0);
 
+    tran_setup (window);
+
+    display = gdk_display_get_default ();
+    gdk_monitor_get_geometry (gdk_display_get_monitor (display, 0), &monitor);
+    x = monitor.width - CALENDA_WIDTH;
+    y = monitor.height - CALENDA_HEIGHT;
+    gtk_window_move (GTK_WINDOW (window), x, y);
+
+    calendar = kiran_calendar_new ();
+    gtk_container_add (GTK_CONTAINER (window), calendar);
+
+    g_signal_connect (window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+
+    gtk_widget_show (calendar);
     gtk_widget_show (window);
 
     gtk_main ();

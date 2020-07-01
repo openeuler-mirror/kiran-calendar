@@ -13,6 +13,11 @@ compiler = meson.get_compiler('c')
 project_name = meson.project_name()
 project_version = meson.project_version()
 
+prefix = get_option('prefix')
+datadir = join_paths(prefix, get_option('datadir'))
+
 i18n  = import('i18n')
 
+subdir('data')
 subdir('src')
+subdir('po')
