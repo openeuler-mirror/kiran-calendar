@@ -71,6 +71,7 @@
 #define INVALIDE_NUM -1
 
 #define BLINK_TIMEOUT 500
+#define SELECT_BOX_COLOR_Y_DIS 2
 
 typedef enum
 {
@@ -153,6 +154,9 @@ struct _KiranCalendarPrivate
 
     gboolean cursor_visible;
     gint blink_timeout; 
+
+    gboolean year_text_select;
+    gboolean month_text_select;
 };
 
 static const guint month_length[2][13] =
@@ -358,6 +362,8 @@ kiran_calendar_init (KiranCalendar *calendar)
     priv->month_input = FALSE;
     priv->cursor_visible = FALSE;
     priv->blink_timeout = 0;
+    priv->year_text_select = FALSE;
+    priv->year_text_select = FALSE;
 
     memset (priv->year_text, '\0', YEAR_INPUT_MAX);
     memset (priv->month_text, '\0', MONTH_INPUT_MAX);
@@ -961,6 +967,7 @@ calendar_paint_lunar (KiranCalendar *calendar,
             rect.x = LUNAR_LEFT_DIS;
 	else
 	    rect.x = LUNAR_SPACE + x;
+
 	rect.y = LUNAR_TOP_DIS;
 
         x_loc = rect.x;
@@ -1082,10 +1089,19 @@ calendar_paint_header_text (KiranCalendar *calendar,
 
     x_loc = HEADER_TEXT_LEFT_DIS;
     y_loc = HEADER_TEXT_TOP_DIS;
-    gtk_render_layout (context, cr, x_loc, y_loc, layout);
-    g_free (markup);
-    g_object_unref (layout);
-    
+
+    if (!(g_getenv ("LANG") && g_strrstr (g_getenv ("LANG"), "zh_CN")))
+	x_loc = x_loc + 16;
+	
+    if (priv->year_text_select)
+    {
+	rect.x = x_loc;
+	rect.y = y_loc + SELECT_BOX_COLOR_Y_DIS;
+	rect.width = logical_rect.width;
+	rect.height = logical_rect.height - 2 * SELECT_BOX_COLOR_Y_DIS;
+        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 0.5, 0.33, 0.54, 0.98, 1, 2, FALSE, TRUE);
+    }
+
 
     rect.x = x_loc - HEADER_TEXT_SPACE / 2;
     rect.y = y_loc - 2;
@@ -1097,7 +1113,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
     else	
         paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, 1, 1.0, 1.0, 1.0, 0.1, 2, FALSE, TRUE);
 
-    if (priv->year_text_input && priv->cursor_visible)
+    if (priv->year_text_input && priv->cursor_visible && !priv->year_text_select)
     {
 	cairo_save (cr);
 
@@ -1110,9 +1126,17 @@ calendar_paint_header_text (KiranCalendar *calendar,
 	cairo_restore (cr);
     }
 
+    gtk_render_layout (context, cr, x_loc, y_loc, layout);
+    g_free (markup);
+    g_object_unref (layout);
+
     x_loc = x_loc + logical_rect.width;
 
-    g_snprintf (buffer, sizeof (buffer),  "%s", "年");
+    if (g_getenv ("LANG") && g_strrstr (g_getenv ("LANG"), "zh_CN"))
+        g_snprintf (buffer, sizeof (buffer),  "%s", "年");
+    else
+        g_snprintf (buffer, sizeof (buffer),  "%s", "-");
+	
     markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 11\">", buffer, "</span>", NULL);
     
     layout = gtk_widget_create_pango_layout (widget, buffer);
@@ -1149,10 +1173,14 @@ calendar_paint_header_text (KiranCalendar *calendar,
 
     x_loc = x_loc + HEADER_TEXT_SPACE;
 
-    gtk_render_layout (context, cr, x_loc, y_loc, layout);
-
-    g_free (markup);
-    g_object_unref (layout);
+    if (priv->month_text_select)
+    {
+	rect.x = x_loc;
+	rect.y = y_loc + SELECT_BOX_COLOR_Y_DIS;
+	rect.width = logical_rect.width;
+	rect.height = logical_rect.height - 2 * SELECT_BOX_COLOR_Y_DIS;
+        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 0.5, 0.33, 0.54, 0.98, 1, 2, FALSE, TRUE);
+    }
 
     rect.x = x_loc - HEADER_TEXT_SPACE/2;
     rect.y = y_loc - 2;
@@ -1164,7 +1192,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
     else
         paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, 1, 1.0, 1.0, 1.0, 0.1, 2, FALSE, TRUE);
 
-    if (priv->month_text_input && priv->cursor_visible)
+    if (priv->month_text_input && priv->cursor_visible && !priv->month_text_select)
     {
 	cairo_save (cr);
 
@@ -1177,9 +1205,17 @@ calendar_paint_header_text (KiranCalendar *calendar,
 	cairo_restore (cr);
     }
 
+    gtk_render_layout (context, cr, x_loc, y_loc, layout);
+    g_free (markup);
+    g_object_unref (layout);
+
     x_loc = x_loc + logical_rect.width;
 
-    g_snprintf (buffer, sizeof (buffer),  "%s", "月");
+    if (g_getenv ("LANG") && g_strrstr (g_getenv ("LANG"), "zh_CN"))
+        g_snprintf (buffer, sizeof (buffer),  "%s", "月");
+    else
+        g_snprintf (buffer, sizeof (buffer),  "%s", " ");
+	
     markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 11\">", buffer, "</span>", NULL);
     
     layout = gtk_widget_create_pango_layout (widget, buffer);
@@ -1623,6 +1659,11 @@ kiran_calendar_button_press (GtkWidget      *widget,
 
     if (event->window == priv->year_text_area)
     {
+	if (!priv->year_input)
+	    priv->year_text_select = TRUE;
+	else
+	    priv->year_text_select = FALSE;
+
         priv->year_input = TRUE;
         priv->year_text_input = TRUE;
         priv->month_text_input = FALSE;
@@ -1631,6 +1672,11 @@ kiran_calendar_button_press (GtkWidget      *widget,
 
     if (event->window == priv->month_text_area)
     {
+	if (!priv->month_input)
+	    priv->month_text_select = TRUE;
+	else
+	    priv->month_text_select = FALSE;
+
         priv->month_input = TRUE;
         priv->year_text_input = FALSE;
         priv->month_text_input = TRUE;
@@ -1644,6 +1690,8 @@ kiran_calendar_button_press (GtkWidget      *widget,
 	priv->month_input = FALSE;
         priv->year_text_input = FALSE;
         priv->month_text_input = FALSE;
+	priv->year_text_select = FALSE;
+	priv->month_text_select = FALSE;
     }
     
     calendar_redraw_component (calendar, priv->year_text_area);
@@ -1932,6 +1980,8 @@ kiran_calendar_key_press (GtkWidget      *widget,
 
 	    priv->year_text_input = FALSE;
  	    priv->month_text_input = FALSE;
+	    priv->year_text_select = FALSE;
+	    priv->month_text_select = FALSE;
 
 	    if (year > 0)
 	        priv->year = year;
@@ -1953,6 +2003,12 @@ kiran_calendar_key_press (GtkWidget      *widget,
     {
 	if (priv->year_text_input)
 	{
+            if (priv->year_text_select)
+            {
+                memset (priv->year_text, '\0', YEAR_INPUT_MAX);
+                return TRUE;
+            } 
+
 	    len = strlen (priv->year_text);
 	    if (len > 0)
 	    {
@@ -1981,6 +2037,12 @@ kiran_calendar_key_press (GtkWidget      *widget,
     {
         gchar tmp[YEAR_INPUT_MAX] = {'\0'};
 
+	if (priv->year_text_select)
+	{
+	    memset (priv->year_text, '\0', YEAR_INPUT_MAX);
+	    priv->year_text_select = FALSE;
+	} 
+
 	len = strlen (priv->year_text);
 	if (len == YEAR_INPUT_MAX - 1)
 	    return TRUE;
@@ -1993,6 +2055,12 @@ kiran_calendar_key_press (GtkWidget      *widget,
     if (priv->month_text_input)
     {
         gchar tmp[MONTH_INPUT_MAX] = {'\0'};
+
+	if (priv->month_text_select)
+	{
+	    memset (priv->month_text, '\0', MONTH_INPUT_MAX);
+	    priv->month_text_select = FALSE;
+	} 
 
 	len = strlen (priv->month_text);
 	if (len == MONTH_INPUT_MAX - 1)
@@ -2103,14 +2171,22 @@ calendar_compute_today_lunar (KiranCalendar *calendar)
 
     g_snprintf (priv->lunar[0], LUNAR_STR_LEN - 1, "%s", _("Today"));
 
-    value = get_lundar_strftime (priv->lundate, year, month, day, 12, "%(NIAN)%(shengxiao)年");
+    if (g_getenv ("LANG") && g_strrstr (g_getenv ("LANG"), "zh_CN"))
+        value = get_lundar_strftime (priv->lundate, year, month, day, 12, "%(NIAN)%(shengxiao)年");
+    else
+   	value = get_lundar_strftime (priv->lundate, year, month, day, 12, "%(year)-%(month)-%(day)");
+
     if (value)
     {
         g_snprintf (priv->lunar[1], LUNAR_STR_LEN - 1, "%s", value);
         g_free (value);
     }
 
-    value = get_lundar_strftime (priv->lundate, year, month, day, 12, "%(M60)月%(RI)");
+    if (g_getenv ("LANG") && g_strrstr (g_getenv ("LANG"), "zh_CN"))
+        value = get_lundar_strftime (priv->lundate, year, month, day, 12, "%(M60)月%(RI)");
+    else
+        value = get_lundar_strftime (priv->lundate, year, month, day, 12, " ");
+	
     if (value)
     {
         g_snprintf (priv->lunar[2], LUNAR_STR_LEN - 1, "%s", value);
