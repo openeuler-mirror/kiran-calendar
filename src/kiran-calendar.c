@@ -7,8 +7,6 @@
 
 #define STANDER_DPI 96.0
 
-#define CALENDA_WIDTH 304
-#define CALENDA_HEIGHT 495
 #define CALENDA_LINE_WIDTH 1
 
 #define TODAY_WIN_WIDTH 36 
@@ -903,14 +901,17 @@ calendar_paint_main (KiranCalendar *calendar,
 static void calendar_paint_background (KiranCalendar *calendar, 
 			               cairo_t       *cr)
 {
+    GtkAllocation allocation;
     GdkRectangle rect;
 
+    gtk_widget_get_allocation (GTK_WIDGET (calendar), &allocation);
+
     cairo_save (cr);
-    
-    rect.x = 0;
-    rect.y = 0;
-    rect.height = CALENDA_HEIGHT - 2 * CALENDA_LINE_WIDTH;
-    rect.width = CALENDA_WIDTH - 2 * CALENDA_LINE_WIDTH;
+
+    rect.x = allocation.x;
+    rect.y = allocation.y;
+    rect.width = allocation.width;
+    rect.height = allocation.height;
 
     paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, CALENDA_LINE_WIDTH, 0.1, 0.1, 0.1, 1.0, 6, TRUE, TRUE);
     
@@ -1315,7 +1316,6 @@ kiran_calendar_draw (GtkWidget *widget,
 	             cairo_t   *cr)
 {
     KiranCalendar *calendar = KIRAN_CALENDAR (widget);
-    KiranCalendarPrivate *priv = calendar->priv;
 
     calendar_paint_background (calendar, cr);
     calendar_paint_lunar (calendar, cr);
@@ -1478,10 +1478,11 @@ calendar_main_button_press (KiranCalendar  *calendar,
     if (event->type == GDK_BUTTON_PRESS)
     {
         day = priv->day[row][col];
-      if (day_month == MONTH_PREV)
-        calendar_set_month_prev (calendar);
-      else if (day_month == MONTH_NEXT)
-        calendar_set_month_next (calendar);
+        if (day_month == MONTH_PREV)
+            calendar_set_month_prev (calendar);
+
+        if (day_month == MONTH_NEXT)
+            calendar_set_month_next (calendar);
 
         if (!gtk_widget_has_focus (widget))
             gtk_widget_grab_focus (widget);
@@ -1494,7 +1495,6 @@ static void
 calendar_today_button_press (KiranCalendar  *calendar,
                             GdkEventButton  *event)
 {
-    GtkWidget *widget = GTK_WIDGET (calendar);
     KiranCalendarPrivate *priv = calendar->priv;
     time_t secs;
     struct tm *tm;

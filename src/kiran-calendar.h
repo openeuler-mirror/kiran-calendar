@@ -9,6 +9,9 @@
 
 G_BEGIN_DECLS
 
+#define CALENDA_WIDTH 304
+#define CALENDA_HEIGHT 495
+
 #define KIRAN_TYPE_CALENDAR 			(kiran_calendar_get_type ()) 
 #define KIRAN_CALENDAR(obj) 			(G_TYPE_CHECK_INSTANCE_CAST ((obj), KIRAN_TYPE_CALENDAR, KiranCalendar))
 #define KIRAN_CALENDAR_CLASS(klass) 		(G_TYPE_CHECK_CLASS_CAST ((klass), KIRAN_TYPE_CALENDAR, KiranCalendarClass))

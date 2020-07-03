@@ -31,3 +31,13 @@ executable('kiran-calendar-test',
   c_args: '-g',
   dependencies : [glib_dep, gobject_dep, gtk_dep, lundate_dep]
 )
+
+executable('kiran-clock-test',
+  'kiran-clock-test.c',
+  'kiran-calendar.c',
+  'kiran-clock.c',
+  'kiran-calendar-window.c',
+  install : false,
+  c_args: '-g',
+  dependencies : [glib_dep, gobject_dep, gtk_dep, lundate_dep]
+)
