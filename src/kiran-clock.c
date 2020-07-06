@@ -102,7 +102,7 @@ kiran_clock_draw (GtkWidget *widget,
    	    strftime (buffer, sizeof (buffer), "%p %l:%M", &(priv->time));
     }
 	
-    markup = g_strconcat ("<span foreground=\"#ff0000\" font_desc=\"Noto Sans CJK SC Light 12\">", buffer, "</span>", NULL);
+    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Light 10\">", buffer, "</span>", NULL);
 
     layout = gtk_widget_create_pango_layout (widget, buffer);
     pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
@@ -110,7 +110,7 @@ kiran_clock_draw (GtkWidget *widget,
     pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
 
     x_loc = (width - logical_rect.width) / 2;
-    y_loc = (height - logical_rect.height) / 2;
+    y_loc = 0;
 
     gtk_render_layout (context, cr, x_loc, y_loc, layout);
 
@@ -129,7 +129,7 @@ kiran_clock_draw (GtkWidget *widget,
     else
         strftime (buffer, sizeof (buffer), "%Y-%m-%d", &(priv->time));
 
-    markup = g_strconcat ("<span foreground=\"#ff0000\" font_desc=\"Noto Sans CJK SC Light 12\">", buffer, "</span>", NULL);
+    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Light 10\">", buffer, "</span>", NULL);
     layout = gtk_widget_create_pango_layout (widget, buffer);
     pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
     pango_layout_set_markup (layout, markup, -1);

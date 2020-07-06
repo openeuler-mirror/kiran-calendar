@@ -15,6 +15,7 @@ project_version = meson.project_version()
 
 prefix = get_option('prefix')
 datadir = join_paths(prefix, get_option('datadir'))
+libexecdir = join_paths(prefix, get_option('libexecdir'))
 
 i18n  = import('i18n')
 
