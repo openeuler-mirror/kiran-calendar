@@ -1,9 +1,9 @@
 #include "config.h"
-#include <math.h>
 #include <lunar-date/lunar-date.h>
 #include <glib/gi18n-lib.h>
 
 #include "kiran-calendar.h"
+#include "common.h"
 
 #define STANDER_DPI 96.0
 
@@ -301,31 +301,16 @@ init_header_images (KiranCalendar *calendar)
 static void
 kiran_calendar_init (KiranCalendar *calendar)
 {
-    KiranCalendarPrivate *priv;
-    time_t secs;
-    struct tm *tm;
     char buffer[255];
     time_t tmp_time;
     gint i;
-
 
     kiran_calendar_date_init_i18n ();
 
     gtk_widget_set_can_focus (GTK_WIDGET (calendar), TRUE);
     gtk_widget_set_has_window (GTK_WIDGET (calendar), TRUE);
 
-    priv = calendar->priv = kiran_calendar_get_instance_private (calendar);
-    
-    secs = time (NULL);
-    tm = localtime (&secs);
-    priv->month = tm->tm_mon;
-    priv->year  = 1900 + tm->tm_year;
-    priv->selected_day = tm->tm_mday;
-
-    priv->hover_day_row = -1;
-    priv->hover_day_col = -1;
-
-    priv->lundate = lunar_date_new ();
+    calendar->priv = kiran_calendar_get_instance_private (calendar);
 
     if (!default_abbreviated_dayname[0])
     for (i=0; i<7; i++)
@@ -343,28 +328,8 @@ kiran_calendar_init (KiranCalendar *calendar)
 #endif
     }
 
-    
-    calendar_compute_today_lunar (calendar);    
-    calendar_compute_days (calendar);    
     init_header_images (calendar);
-
-
-    priv->prev_year_state = KIRAN_NORMAL;
-    priv->next_year_state = KIRAN_NORMAL;
-    priv->prev_month_state = KIRAN_NORMAL;
-    priv->next_month_state = KIRAN_NORMAL;
-    priv->today_state = KIRAN_NORMAL;
-    priv->year_text_input = FALSE;
-    priv->month_text_input = FALSE;
-    priv->year_input = FALSE;
-    priv->month_input = FALSE;
-    priv->cursor_visible = FALSE;
-    priv->blink_timeout = 0;
-    priv->year_text_select = FALSE;
-    priv->year_text_select = FALSE;
-
-    memset (priv->year_text, '\0', YEAR_INPUT_MAX);
-    memset (priv->month_text, '\0', MONTH_INPUT_MAX);
+    kiran_calendar_refresh (calendar);
 }
 
 static void 
@@ -727,47 +692,6 @@ calendar_day_rectangle (KiranCalendar *calendar,
     rect->y = (DAY_RECT_HEIGHT + DAY_ROW_SPACE) * row + DAY_ROW_TOP_DIS; 
     rect->height = DAY_RECT_HEIGHT + DAY_ROW_SPACE;
     rect->width = DAY_RECT_WIDTH; 
-}
-
-static void
-paint_round_rectangle (cairo_t       *cr,
-		       GdkRectangle  *rect,
-		       gdouble        line_red,
-	               gdouble        line_blue,
-                       gdouble        line_green,
-                       gdouble        line_width,
-		       gdouble        fill_red,
-	               gdouble        fill_bule,
-		       gdouble        fill_green,
-		       gdouble	      alpha,
-                       gdouble        radius,
-		       gboolean       line,
-		       gboolean       fill)
-{
-    gdouble degrees = M_PI / 180.0;
-
-    cairo_new_sub_path (cr);
-    cairo_arc (cr, rect->x + rect->width - radius, rect->y + radius, radius, -90 * degrees, 0 * degrees);
-    cairo_arc (cr, rect->x + rect->width - radius, rect->y + rect->height - radius, radius, 0 * degrees, 90 * degrees);
-    cairo_arc (cr, rect->x + radius, rect->y + rect->height - radius, radius, 90 * degrees, 180 * degrees);
-    cairo_arc (cr, rect->x + radius, rect->y + radius, radius, 180 * degrees, 270 * degrees);
-    cairo_close_path (cr);
-
-    if (fill)
-    {
-        cairo_set_source_rgba (cr, fill_red, fill_bule, fill_green, alpha);
-	if (line)
-            cairo_fill_preserve (cr);
-	else
-	    cairo_fill (cr);
-    }
-
-    if (line)
-    {
-        cairo_set_source_rgba (cr, line_red, line_blue, line_green, 1.0);
-        cairo_set_line_width (cr, line_width);
-        cairo_stroke (cr);
-    }
 }
 
 static void
@@ -1336,8 +1260,29 @@ calendar_compute_event_day (gint win_x,
                             gint *row,
                             gint *col)
 {
-    *row  = y / (DAY_RECT_HEIGHT + DAY_ROW_SPACE);
-    *col  = x / DAY_RECT_WIDTH;
+    GdkRectangle day_rect;
+    gint coll, roww;
+
+    *col = -1;
+    *row = -1;
+    
+    x = x + win_x;
+    y = y + win_y;
+
+    for (coll = 0; coll < DAY_COL; coll++)
+        for (roww = 0; roww < DAY_ROW; roww++)
+    {
+    	calendar_day_rectangle (NULL, roww, coll, &day_rect);
+	if ( (x >= day_rect.x) &&
+	     (y >= day_rect.y) &&
+	     (x <= day_rect.x + day_rect.width) &&
+	     (y <= day_rect.y + day_rect.height))
+	{
+	    *row = roww;
+	    *col = coll;
+	    break;
+	}
+    }
 }
 
 static void
@@ -2425,4 +2370,52 @@ void kiran_calendar_select_day (KiranCalendar *calendar,
 	if (gtk_widget_is_drawable (GTK_WIDGET (calendar)))
 	    calendar_invalidate_day_num (calendar,  priv->selected_day);    
     }
+}
+
+/**
+ * kiran_calendar_refresh:
+ * @calendar: 一个#KiranCalendar
+ *
+ */
+void 
+kiran_calendar_refresh (KiranCalendar *calendar)
+{
+    KiranCalendarPrivate *priv;
+    time_t secs;
+    struct tm *tm;
+
+
+    g_return_if_fail (KIRAN_IS_CALENDAR (calendar));
+    priv = calendar->priv;
+    
+    secs = time (NULL);
+    tm = localtime (&secs);
+    priv->month = tm->tm_mon;
+    priv->year  = 1900 + tm->tm_year;
+    priv->selected_day = tm->tm_mday;
+
+    priv->hover_day_row = -1;
+    priv->hover_day_col = -1;
+
+    priv->lundate = lunar_date_new ();
+
+    calendar_compute_today_lunar (calendar);    
+    calendar_compute_days (calendar);    
+
+    priv->prev_year_state = KIRAN_NORMAL;
+    priv->next_year_state = KIRAN_NORMAL;
+    priv->prev_month_state = KIRAN_NORMAL;
+    priv->next_month_state = KIRAN_NORMAL;
+    priv->today_state = KIRAN_NORMAL;
+    priv->year_text_input = FALSE;
+    priv->month_text_input = FALSE;
+    priv->year_input = FALSE;
+    priv->month_input = FALSE;
+    priv->cursor_visible = FALSE;
+    priv->blink_timeout = 0;
+    priv->year_text_select = FALSE;
+    priv->year_text_select = FALSE;
+
+    memset (priv->year_text, '\0', YEAR_INPUT_MAX);
+    memset (priv->month_text, '\0', MONTH_INPUT_MAX);
 }

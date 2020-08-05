@@ -34,6 +34,8 @@ struct _KiranCalendarWindowClass
 
 GType kiran_calendar_window_get_type (void);
 GtkWidget *kiran_calendar_window_new (void);
+void kiran_calendar_window_show (KiranCalendarWindow *window);
+void kiran_calendar_window_hide (KiranCalendarWindow *window);
 
 G_END_DECLS
 

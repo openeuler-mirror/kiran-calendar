@@ -10,9 +10,9 @@ button_press (GtkWidget      *widget,
     KiranCalendarWindow *window  = KIRAN_CALENDAR_WINDOW (user_data);
 
     if (gtk_widget_is_visible (GTK_WIDGET (window)))
-        gtk_widget_hide (GTK_WIDGET (window));
+        kiran_calendar_window_hide (window);
     else
-        gtk_widget_show (GTK_WIDGET (window));
+        kiran_calendar_window_show (window);
 
     return TRUE;
 }

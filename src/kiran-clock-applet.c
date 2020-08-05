@@ -127,11 +127,11 @@ button_press (GtkWidget      *widget,
     if (event->button == GDK_BUTTON_PRIMARY)
     {
         if (gtk_widget_is_visible (GTK_WIDGET (window)))
-            gtk_widget_hide (GTK_WIDGET (window));
+            kiran_calendar_window_hide (window);
         else
 	{
 	    position_calendar_window (kcd);
-            gtk_widget_show (GTK_WIDGET (window));
+            kiran_calendar_window_show (window);
 	}
     }
 

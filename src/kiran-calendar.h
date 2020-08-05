@@ -40,6 +40,7 @@ GType kiran_calendar_get_type (void);
 GtkWidget *kiran_calendar_new (void);
 void kiran_calendar_select_day (KiranCalendar *calendar,
 			      guint         day);
+void kiran_calendar_refresh (KiranCalendar *calendar);
 
 G_END_DECLS
 

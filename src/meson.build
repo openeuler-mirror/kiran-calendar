@@ -28,6 +28,7 @@ configure_file(
 executable('kiran-calendar-test',
   'kiran-calendar-test.c',
   'kiran-calendar.c',
+  'common.c',
   install : false,
   c_args: '-g',
   dependencies : [glib_dep, gobject_dep, gtk_dep, lundate_dep]
@@ -38,6 +39,7 @@ executable('kiran-clock-test',
   'kiran-calendar.c',
   'kiran-clock.c',
   'kiran-calendar-window.c',
+  'common.c',
   install : false,
   c_args: '-g',
   dependencies : [glib_dep, gobject_dep, gtk_dep, lundate_dep]
@@ -48,6 +50,7 @@ executable('kiran-clock-applet',
   'kiran-calendar.c',
   'kiran-clock.c',
   'kiran-calendar-window.c',
+  'common.c',
   install : true,
   install_dir: libexecdir,
   dependencies : [glib_dep, gobject_dep, gtk_dep, lundate_dep, libmatepanelapplet_dep]

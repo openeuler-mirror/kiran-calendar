@@ -1,4 +1,5 @@
 #include "kiran-clock.h"
+#include "common.h"
 
 struct _KiranClockPrivate
 {
@@ -8,6 +9,7 @@ struct _KiranClockPrivate
     gboolean show_second;
     gboolean show_long_date_format;
     gboolean show_24_hour;
+    gboolean is_hover;
 };
 
 static void kiran_clock_finalize        (GObject *object);
@@ -17,6 +19,10 @@ static void kiran_clock_destroy        	(GtkWidget *widget);
 static void kiran_clock_map        	(GtkWidget *widget);
 static void kiran_clock_unmap        	(GtkWidget *widget);
 static gboolean kiran_clock_refresh 	(gpointer data);
+static gboolean kiran_clock_enter_notify (GtkWidget        *widget,
+                                          GdkEventCrossing *event);
+static gboolean kiran_clock_leave_notify (GtkWidget        *widget,
+                                          GdkEventCrossing *event);
 
 G_DEFINE_TYPE_WITH_PRIVATE (KiranClock, kiran_clock, GTK_TYPE_EVENT_BOX)
 
@@ -31,6 +37,8 @@ kiran_clock_class_init (KiranClockClass *class)
     widget_class->destroy = kiran_clock_destroy;
     widget_class->map = kiran_clock_map;
     widget_class->unmap = kiran_clock_unmap;
+    widget_class->enter_notify_event = kiran_clock_enter_notify;
+    widget_class->leave_notify_event = kiran_clock_leave_notify;
    
 };
 
@@ -49,6 +57,7 @@ kiran_clock_init (KiranClock *clock)
     priv->show_second = FALSE;
     priv->show_long_date_format = FALSE;
     priv->show_24_hour = TRUE;
+    priv->is_hover = FALSE;
 }
 
 static void 
@@ -86,7 +95,21 @@ kiran_clock_draw (GtkWidget *widget,
     width = gtk_widget_get_allocated_width (widget);
     height = gtk_widget_get_allocated_width (widget);
 
+    if (priv->is_hover)
+    {
+    	//draw background
+	GdkRectangle rect;
 
+        cairo_save (cr);
+
+        rect.x = 0;
+        rect.y = 0;
+        rect.width = width;
+        rect.height = height;
+        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 1, 0.1, 0.1, 0.1, 0.2, 2, FALSE, TRUE);
+	
+        cairo_restore (cr);
+    }
     if (priv->show_second)
     {
 	if (priv->show_24_hour)
@@ -159,6 +182,30 @@ kiran_clock_refresh (gpointer data)
     localtime_r (&timet, &priv->time);
 
     gtk_widget_queue_draw (GTK_WIDGET (clock));
+
+    return TRUE;
+}
+
+static gboolean 
+kiran_clock_enter_notify (GtkWidget        *widget,
+                          GdkEventCrossing *event)
+{
+    KiranClockPrivate *priv = KIRAN_CLOCK (widget)->priv;
+
+    priv->is_hover = TRUE;
+    kiran_clock_refresh (widget);
+
+    return TRUE;
+}
+
+static gboolean 
+kiran_clock_leave_notify (GtkWidget        *widget,
+                          GdkEventCrossing *event)
+{
+    KiranClockPrivate *priv = KIRAN_CLOCK (widget)->priv;
+
+    priv->is_hover = FALSE;
+    kiran_clock_refresh (widget);
 
     return TRUE;
 }

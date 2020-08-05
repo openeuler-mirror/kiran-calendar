@@ -63,3 +63,17 @@ kiran_calendar_window_new (void)
 {
     return g_object_new (KIRAN_TYPE_CALENDAR_WINDOW, NULL);
 }
+
+void 
+kiran_calendar_window_show (KiranCalendarWindow *window)
+{
+    
+    kiran_calendar_refresh (window->priv->calendar);
+    gtk_widget_show (GTK_WIDGET (window));
+}
+
+void 
+kiran_calendar_window_hide (KiranCalendarWindow *window)
+{
+   gtk_widget_hide (GTK_WIDGET (window));
+}
