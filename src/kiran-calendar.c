@@ -2312,7 +2312,7 @@ calendar_compute_today_lunar (KiranCalendar *calendar)
     }
 
     if (g_getenv ("LANG") && g_strrstr (g_getenv ("LANG"), "zh_CN"))
-        value = get_lundar_strftime (priv->lundate, year, month, day, 12, "%(M60)月%(RI)");
+        value = get_lundar_strftime (priv->lundate, year, month, day, 12, "%(YUE)月%(RI)");
     else
         value = get_lundar_strftime (priv->lundate, year, month, day, 12, " ");
 	
