@@ -29,6 +29,9 @@ main (int argc,
     GdkDisplay *display;
     GdkRectangle monitor;
     GError *error = NULL;
+    GtkCssProvider *provider;
+    GdkScreen *screen;
+    GFile *css_fp;
 
     if (!gtk_init_with_args (&argc, &argv, NULL, NULL, NULL, &error))
     {
@@ -36,6 +39,15 @@ main (int argc,
 	g_error_free (error);
         exit (1);
     }
+
+    provider = gtk_css_provider_new ();
+    display = gdk_display_get_default ();
+    screen = gdk_display_get_default_screen (display);
+    gtk_style_context_add_provider_for_screen (screen,
+                                             GTK_STYLE_PROVIDER(provider),
+                                             GTK_STYLE_PROVIDER_PRIORITY_USER);
+    css_fp  = g_file_new_for_path ("/usr/share/kiran-calendar/kiran-calendar.css");
+    gtk_css_provider_load_from_file (provider, css_fp, NULL);
 
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title (GTK_WINDOW (window), "Test Calendar");
@@ -66,6 +78,9 @@ main (int argc,
     gtk_widget_show (window);
 
     gtk_main ();
+
+    g_object_unref (provider);
+    g_object_unref (css_fp);
 
     return EXIT_SUCCESS;
 }

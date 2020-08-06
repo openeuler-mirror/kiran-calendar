@@ -39,7 +39,23 @@ kiran_clock_class_init (KiranClockClass *class)
     widget_class->unmap = kiran_clock_unmap;
     widget_class->enter_notify_event = kiran_clock_enter_notify;
     widget_class->leave_notify_event = kiran_clock_leave_notify;
+
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("text-color",
+                                                                "Text color",
+                                                                "Text color",
+                                                                "#ffffff",
+                                                                G_PARAM_READABLE));
+
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("text-font",
+                                                                "Text font",
+                                                                "Text font",
+                                                                "",
+                                                                G_PARAM_READABLE));
+
    
+    gtk_widget_class_set_css_name (widget_class, "kiranclock");
 };
 
 static void
@@ -85,6 +101,16 @@ kiran_clock_draw (GtkWidget *widget,
     gint x_loc, y_loc;
     gchar buffer[32];
     gchar *markup;
+    gchar *tcolor;
+    gchar *tfont;
+
+    gtk_widget_style_get(widget,
+                         "text-color", &tcolor,
+                         NULL);
+
+    gtk_widget_style_get(widget,
+                         "text-font", &tfont,
+                         NULL);
 
     priv = KIRAN_CLOCK (widget)->priv;
 
@@ -99,6 +125,7 @@ kiran_clock_draw (GtkWidget *widget,
     {
     	//draw background
 	GdkRectangle rect;
+	GdkRGBA color;
 
         cairo_save (cr);
 
@@ -106,7 +133,8 @@ kiran_clock_draw (GtkWidget *widget,
         rect.y = 0;
         rect.width = width;
         rect.height = height;
-        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 1, 0.1, 0.1, 0.1, 0.2, 2, FALSE, TRUE);
+	gtk_style_context_lookup_color(context, "clock_box_hover_color", &color);
+        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 1, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
 	
         cairo_restore (cr);
     }
@@ -125,7 +153,7 @@ kiran_clock_draw (GtkWidget *widget,
    	    strftime (buffer, sizeof (buffer), "%p %l:%M", &(priv->time));
     }
 	
-    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Light 10\">", buffer, "</span>", NULL);
+    markup = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
 
     layout = gtk_widget_create_pango_layout (widget, buffer);
     pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
@@ -152,7 +180,7 @@ kiran_clock_draw (GtkWidget *widget,
     else
         strftime (buffer, sizeof (buffer), "%Y-%m-%d", &(priv->time));
 
-    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Light 10\">", buffer, "</span>", NULL);
+    markup = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
     layout = gtk_widget_create_pango_layout (widget, buffer);
     pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
     pango_layout_set_markup (layout, markup, -1);
@@ -167,6 +195,9 @@ kiran_clock_draw (GtkWidget *widget,
  
     cairo_restore (cr);
     gtk_style_context_restore (context);
+
+    g_free (tcolor);
+    g_free (tfont);
 
     return FALSE;
 }

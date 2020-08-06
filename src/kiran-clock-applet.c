@@ -130,8 +130,8 @@ button_press (GtkWidget      *widget,
             kiran_calendar_window_hide (window);
         else
 	{
-	    position_calendar_window (kcd);
             kiran_calendar_window_show (window);
+	    position_calendar_window (kcd);
 	}
     }
 
@@ -177,9 +177,25 @@ kiran_clock_factory (MatePanelApplet *applet,
 		     gpointer data)
 {
     gboolean retval = FALSE;
+    GtkCssProvider *provider;
+    GdkScreen *screen;
+    GdkDisplay *display;
+    GFile *css_fp;
+    provider = gtk_css_provider_new ();
+    display = gdk_display_get_default ();
+    screen = gdk_display_get_default_screen (display);
+    gtk_style_context_add_provider_for_screen (screen,
+                                             GTK_STYLE_PROVIDER(provider),
+                                             GTK_STYLE_PROVIDER_PRIORITY_USER);
+    css_fp  = g_file_new_for_path ("/usr/share/kiran-calendar/kiran-calendar.css");
+    gtk_css_provider_load_from_file (provider, css_fp, NULL);
 
     if (!strcmp (iid, "KiranClockApplet"))
 	retval = fill_clock_applet (applet);
+
+    g_object_unref (provider);
+    g_object_unref (css_fp);
+
     return retval;
 }
 

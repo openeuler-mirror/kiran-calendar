@@ -24,7 +24,7 @@
 #define HEADER_RIGHT_DIS 20
 #define HEADER_ARROW_SPACE 16
 #define HEADER_TOP_DIS (SEPARATE_LINE_TOP_DIS + 24)
-#define HEADER_TEXT_LEFT_DIS 96
+#define HEADER_TEXT_LEFT_DIS 102
 #define HEADER_TEXT_SPACE 10
 #define HEADER_TEXT_TOP_DIS (HEADER_TOP_DIS - 6)
 
@@ -51,25 +51,16 @@
 #define LUNAR_STR_LEN 256
 #define DAY_ROW_TOP_DIS (SEPARATE_LINE_TOP_DIS_1 + 17)
 
-#define NEXT_YEAR_ARROW_N_IMAGE "/usr/share/kiran-calendar/pixmaps/next-year-arrow-normal.png"
-#define NEXT_YEAR_ARROW_P_IMAGE "/usr/share/kiran-calendar/pixmaps/next-year-arrow-press.png"
-#define NEXT_YEAR_ARROW_H_IMAGE "/usr/share/kiran-calendar/pixmaps/next-year-arrow-hover.png"
-#define PREV_YEAR_ARROW_N_IMAGE "/usr/share/kiran-calendar/pixmaps/prev-year-arrow-normal.png"
-#define PREV_YEAR_ARROW_P_IMAGE "/usr/share/kiran-calendar/pixmaps/prev-year-arrow-press.png"
-#define PREV_YEAR_ARROW_H_IMAGE "/usr/share/kiran-calendar/pixmaps/prev-year-arrow-hover.png"
-#define NEXT_MONTH_ARROW_N_IMAGE "/usr/share/kiran-calendar/pixmaps/next-month-arrow-normal.png"
-#define NEXT_MONTH_ARROW_P_IMAGE "/usr/share/kiran-calendar/pixmaps/next-month-arrow-press.png"
-#define NEXT_MONTH_ARROW_H_IMAGE "/usr/share/kiran-calendar/pixmaps/next-month-arrow-hover.png"
-#define PREV_MONTH_ARROW_N_IMAGE "/usr/share/kiran-calendar/pixmaps/prev-month-arrow-normal.png"
-#define PREV_MONTH_ARROW_P_IMAGE "/usr/share/kiran-calendar/pixmaps/prev-month-arrow-press.png"
-#define PREV_MONTH_ARROW_H_IMAGE "/usr/share/kiran-calendar/pixmaps/prev-month-arrow-hover.png"
-
 #define YEAR_INPUT_MAX 5
 #define MONTH_INPUT_MAX 3
 #define INVALIDE_NUM -1
 
 #define BLINK_TIMEOUT 500
 #define SELECT_BOX_COLOR_Y_DIS 2
+
+#define ARROW_WIDTH 6
+#define ARROW_HEIGHT 12
+#define ARROW_SPACE 4
 
 typedef enum
 {
@@ -134,7 +125,6 @@ struct _KiranCalendarPrivate
 
     gchar lunar[3][LUNAR_STR_LEN];
 
-    cairo_surface_t *header_images[HEADER_IMAGES];
     KiranCalendarState prev_year_state;
     KiranCalendarState next_year_state;
     KiranCalendarState prev_month_state;
@@ -259,6 +249,98 @@ kiran_calendar_class_init (KiranCalendarClass *class)
     widget_class->key_press_event = kiran_calendar_key_press;
     widget_class->focus_in_event = kiran_calendar_focus_in;
     widget_class->focus_out_event = kiran_calendar_focus_out;
+
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("today-calendar-color",
+                                                                "Today calendar color",
+                                                                "Today calendar color",
+                                                                "#ffffff",
+                                                                G_PARAM_READABLE));
+
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("today-calendar-button-normal-color",
+                                                                "Today calendar button normal color",
+                                                                "Today calendar button normal color",
+                                                                "#ffffff",
+                                                                G_PARAM_READABLE));
+
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("today-calendar-button-press-color",
+                                                                "Today calendar button press color",
+                                                                "Today calendar button press color",
+                                                                "#ffffff",
+                                                                G_PARAM_READABLE));
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("today-calendar-button-hover-color",
+                                                                "Today calendar button hover color",
+                                                                "Today calendar button hover color",
+                                                                "#ffffff",
+                                                                G_PARAM_READABLE));
+
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("day-current-month-color",
+                                                                "Day current month color",
+                                                                "Day current month color",
+                                                                "#ffffff",
+                                                                G_PARAM_READABLE));
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("day-other-month-color",
+                                                                "Day other month color",
+                                                                "Day other month color",
+                                                                "#ffffff",
+                                                                G_PARAM_READABLE));
+
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("day-names-color",
+                                                                "Day names color",
+                                                                "Day names color",
+                                                                "#ffffff",
+                                                                G_PARAM_READABLE));
+
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("day-head-color",
+                                                                "Day head color",
+                                                                "Day head color",
+                                                                "#ffffff",
+                                                                G_PARAM_READABLE));
+
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("today-font",
+                                                                "Today font",
+                                                                "Today font",
+                                                                "",
+                                                                G_PARAM_READABLE));
+
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("day-box-font",
+                                                                "Day box font",
+                                                                "Day box font",
+                                                                "",
+                                                                G_PARAM_READABLE));
+
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("day-box-lunar-font",
+                                                                "Day box lunar font",
+                                                                "Day box lunar font",
+                                                                "",
+                                                                G_PARAM_READABLE));
+
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("day-names-font",
+                                                                "Day names font",
+                                                                "Day names font",
+                                                                "",
+                                                                G_PARAM_READABLE));
+
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_string ("day-head-font",
+                                                                "Day head font",
+                                                                "Day head font",
+                                                                "",
+                                                                G_PARAM_READABLE));
+
+
+    gtk_widget_class_set_css_name (widget_class, "kirancalendar");
 }
 
 static void
@@ -273,29 +355,6 @@ kiran_calendar_date_init_i18n ()
         bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 #endif
     }
-}
-
-
-static void
-init_header_images (KiranCalendar *calendar)
-{
-    KiranCalendarPrivate *priv = calendar->priv;
-
-    priv->header_images[IMAGE_ARROW_YEAR_PREV_N] = cairo_image_surface_create_from_png (PREV_YEAR_ARROW_N_IMAGE);
-    priv->header_images[IMAGE_ARROW_YEAR_PREV_P] = cairo_image_surface_create_from_png (PREV_YEAR_ARROW_P_IMAGE);
-    priv->header_images[IMAGE_ARROW_YEAR_PREV_H] = cairo_image_surface_create_from_png (PREV_YEAR_ARROW_H_IMAGE);
-
-    priv->header_images[IMAGE_ARROW_YEAR_NEXT_N] = cairo_image_surface_create_from_png (NEXT_YEAR_ARROW_N_IMAGE);
-    priv->header_images[IMAGE_ARROW_YEAR_NEXT_P] = cairo_image_surface_create_from_png (NEXT_YEAR_ARROW_P_IMAGE);
-    priv->header_images[IMAGE_ARROW_YEAR_NEXT_H] = cairo_image_surface_create_from_png (NEXT_YEAR_ARROW_H_IMAGE);
-
-    priv->header_images[IMAGE_ARROW_MONTH_PREV_N] = cairo_image_surface_create_from_png (PREV_MONTH_ARROW_N_IMAGE);
-    priv->header_images[IMAGE_ARROW_MONTH_PREV_P] = cairo_image_surface_create_from_png (PREV_MONTH_ARROW_P_IMAGE);
-    priv->header_images[IMAGE_ARROW_MONTH_PREV_H] = cairo_image_surface_create_from_png (PREV_MONTH_ARROW_H_IMAGE);
-
-    priv->header_images[IMAGE_ARROW_MONTH_NEXT_N] = cairo_image_surface_create_from_png (NEXT_MONTH_ARROW_N_IMAGE);
-    priv->header_images[IMAGE_ARROW_MONTH_NEXT_P] = cairo_image_surface_create_from_png (NEXT_MONTH_ARROW_P_IMAGE);
-    priv->header_images[IMAGE_ARROW_MONTH_NEXT_H] = cairo_image_surface_create_from_png (NEXT_MONTH_ARROW_H_IMAGE);
 }
 
 static void
@@ -328,7 +387,6 @@ kiran_calendar_init (KiranCalendar *calendar)
 #endif
     }
 
-    init_header_images (calendar);
     kiran_calendar_refresh (calendar);
 }
 
@@ -336,17 +394,10 @@ static void
 kiran_calendar_finalize (GObject *object)
 {
     KiranCalendarPrivate *priv = KIRAN_CALENDAR (object)->priv;
-    gint i;
 
     if (priv->lundate)
 	lunar_date_free (priv->lundate);
     
-    for (i = 0; i < HEADER_IMAGES; i++)
-    {
-	if (priv->header_images[i])
-	    cairo_surface_destroy (priv->header_images[i]);
-    }
-
     if (priv->blink_timeout)
         g_source_remove (priv->blink_timeout);
 
@@ -381,8 +432,8 @@ calendar_realize_arrows (KiranCalendar *calendar)
 
     //prev year arrow
     x = HEADER_LEFT_DIS;
-    w = cairo_image_surface_get_width (priv->header_images[0]);
-    h = cairo_image_surface_get_height (priv->header_images[0]);
+    w = ARROW_SPACE + ARROW_WIDTH;
+    h = ARROW_HEIGHT;
     attributes.x = allocation.x + x;
     attributes.y = allocation.y + HEADER_TOP_DIS;
     attributes.width = w;
@@ -396,8 +447,8 @@ calendar_realize_arrows (KiranCalendar *calendar)
 
     //prev month arrow
     x = x + w + HEADER_ARROW_SPACE;
-    w = cairo_image_surface_get_width (priv->header_images[6]);
-    h = cairo_image_surface_get_height (priv->header_images[6]);
+    w = ARROW_WIDTH;
+    h = ARROW_HEIGHT;
     attributes.x = allocation.x + x;
     attributes.y = allocation.y + HEADER_TOP_DIS;
     attributes.width = w;
@@ -408,8 +459,8 @@ calendar_realize_arrows (KiranCalendar *calendar)
     gtk_widget_register_window (widget, priv->arrow_win[ARROW_MONTH_PREV]);
 
     //net year arrow
-    w = cairo_image_surface_get_width (priv->header_images[3]);
-    h = cairo_image_surface_get_height (priv->header_images[3]);
+    w = ARROW_SPACE + ARROW_WIDTH;
+    h = ARROW_HEIGHT;
     x = CALENDA_WIDTH - HEADER_RIGHT_DIS - w;
     attributes.x = allocation.x + x;
     attributes.y = allocation.y + HEADER_TOP_DIS;
@@ -421,9 +472,8 @@ calendar_realize_arrows (KiranCalendar *calendar)
     gtk_widget_register_window (widget, priv->arrow_win[ARROW_YEAR_NEXT]);
 
     //net month arrow
-    x = x - w;
-    w = cairo_image_surface_get_width (priv->header_images[9]);
-    h = cairo_image_surface_get_height (priv->header_images[9]);
+    w = ARROW_WIDTH;
+    h = ARROW_HEIGHT;
     x = x - HEADER_ARROW_SPACE - w;
     attributes.x = allocation.x + x;
     attributes.y = allocation.y + HEADER_TOP_DIS;
@@ -716,6 +766,10 @@ calendar_paint_day (KiranCalendar *calendar,
     time_t secs;
     struct tm *tm;
     gint top_dis;
+    GdkRGBA color;
+    gchar *tcolor;
+    gchar *tfont;
+    gchar *tfont_lunar;
 
     g_return_if_fail (row < DAY_ROW);
     g_return_if_fail (col < DAY_COL);
@@ -734,15 +788,28 @@ calendar_paint_day (KiranCalendar *calendar,
     g_snprintf (buffer, sizeof (buffer), "%d", day);
     g_snprintf (buffer_lunar, sizeof (buffer_lunar), "%s", priv->day_lunar[row][col]);
 
+    gtk_widget_style_get(GTK_WIDGET (calendar), 
+	    	         "day-box-font", &tfont,
+		         NULL);
+
+    gtk_widget_style_get(GTK_WIDGET (calendar), 
+	    	         "day-box-lunar-font", &tfont_lunar,
+		         NULL);
+
     if (priv->day_month[row][col] == MONTH_PREV ||
         priv->day_month[row][col] == MONTH_NEXT)
     {
-    	markup = g_strconcat ("<span foreground=\"#636363\" font_desc=\"Noto Sans CJK SC Light 10\">", buffer, "</span>", NULL);
-    	markup_lunar = g_strconcat ("<span foreground=\"#636363\" font_desc=\"Noto Sans CJK SC Light 8\">", buffer_lunar, "</span>", NULL);
+	gtk_widget_style_get(GTK_WIDGET (calendar), 
+	         	     "day-other-month-color", &tcolor,
+			     NULL);
 	state |= GTK_STATE_FLAG_INCONSISTENT;
     }
     else
     {
+	gtk_widget_style_get(GTK_WIDGET (calendar), 
+	         	     "day-current-month-color", &tcolor,
+			     NULL);
+
 	if (priv->selected_day == day)
 	{
     	    GdkRectangle rect;
@@ -752,19 +819,19 @@ calendar_paint_day (KiranCalendar *calendar,
             rect.y = day_rect.y + 1;
 	    rect.width = day_rect.width - 2;
 	    rect.height = day_rect.height - 2;
-	    paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, DAY_RECT_LINE_WIDTH, 0.33, 0.54, 0.98, 1, 2, TRUE, FALSE);
+	    gtk_style_context_lookup_color(context, "day_box_select_color", &color);
+	    paint_round_rectangle (cr, &rect, color.red, color.green, color.blue, DAY_RECT_LINE_WIDTH, 0.33, 0.54, 0.98, 1, 2, TRUE, FALSE);
 	    state |= GTK_STATE_FLAG_SELECTED;
 	    day_rect.height = day_rect.height + DAY_ROW_SPACE;
        
 	}
-    	markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Light 10\">", buffer, "</span>", NULL);
-    	markup_lunar = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Light 8\">", buffer_lunar, "</span>", NULL);
         if ( priv->year == 1900 + tm->tm_year &&
              priv->month ==  tm->tm_mon &&
              day == tm->tm_mday )
         {
             day_rect.height = day_rect.height - DAY_ROW_SPACE;
-            paint_round_rectangle (cr, &day_rect, 0.33, 0.54, 0.98, DAY_RECT_LINE_WIDTH, 0.33, 0.54, 0.98, 1, 2, FALSE, TRUE);
+	    gtk_style_context_lookup_color(context, "day_box_today_color", &color);
+            paint_round_rectangle (cr, &day_rect, 0.33, 0.54, 0.98, DAY_RECT_LINE_WIDTH, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
             day_rect.height = day_rect.height + DAY_ROW_SPACE;
         }
     }
@@ -773,9 +840,13 @@ calendar_paint_day (KiranCalendar *calendar,
         priv->hover_day_col == col)
     {
         day_rect.height = day_rect.height - DAY_ROW_SPACE;
-	paint_round_rectangle (cr, &day_rect, 0.33, 0.54, 0.98, DAY_RECT_LINE_WIDTH, 1.0, 1.0, 1.0, 0.1, 2, FALSE, TRUE);
+	gtk_style_context_lookup_color(context, "day_box_hover_color", &color);
+	paint_round_rectangle (cr, &day_rect, 0.33, 0.54, 0.98, DAY_RECT_LINE_WIDTH, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
 	day_rect.height = day_rect.height + DAY_ROW_SPACE;
     }
+
+    markup = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
+    markup_lunar = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont_lunar, "\">", buffer_lunar, "</span>", NULL);
 
     gtk_style_context_set_state (context, state);
 
@@ -804,6 +875,10 @@ calendar_paint_day (KiranCalendar *calendar,
     g_free (markup_lunar);
     g_object_unref (layout);
 
+    g_free (tfont);
+    g_free (tcolor);
+    g_free (tfont_lunar);
+
     gtk_style_context_restore (context);
 }
 
@@ -825,11 +900,15 @@ calendar_paint_main (KiranCalendar *calendar,
 static void calendar_paint_background (KiranCalendar *calendar, 
 			               cairo_t       *cr)
 {
+    GdkRGBA *bg_rgba = NULL;
+    GtkStyleContext *context;
     GtkAllocation allocation;
     GdkRectangle rect;
 
     gtk_widget_get_allocation (GTK_WIDGET (calendar), &allocation);
+    context = gtk_widget_get_style_context (GTK_WIDGET (calendar));
 
+    gtk_style_context_save (context);
     cairo_save (cr);
 
     rect.x = allocation.x;
@@ -837,9 +916,14 @@ static void calendar_paint_background (KiranCalendar *calendar,
     rect.width = allocation.width;
     rect.height = allocation.height;
 
-    paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, CALENDA_LINE_WIDTH, 0.1, 0.1, 0.1, 1.0, 6, TRUE, TRUE);
+    gtk_style_context_get (context, gtk_style_context_get_state (context),
+                             "background-color", &bg_rgba,
+                              NULL);
+
+    paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, CALENDA_LINE_WIDTH, bg_rgba->red, bg_rgba->green, bg_rgba->blue, bg_rgba->alpha, 6, TRUE, TRUE);
     
     cairo_restore (cr);
+    gtk_style_context_restore (context);
 }
 
 static void 
@@ -856,11 +940,17 @@ calendar_paint_lunar (KiranCalendar *calendar,
     gchar *markup;
     gint i;
     gint x;
+    gchar *tcolor;
+    gchar *tfont;
 
     cairo_save (cr);
 
     context = gtk_widget_get_style_context (widget);
     gtk_style_context_save (context);
+
+    gtk_widget_style_get(GTK_WIDGET (calendar), 
+	    	         "today-font", &tfont,
+		         NULL);
 
     x = 0;
     for (i = 0; i < 3; i++)
@@ -871,15 +961,33 @@ calendar_paint_lunar (KiranCalendar *calendar,
 
 	if (i == 0)
         {
+
 	    if (priv->today_state == KIRAN_HOVER)
-	        markup = g_strconcat ("<span foreground=\"#97b8ff\" font_desc=\"Noto Sans CJK SC Regular 14\">", buffer, "</span>", NULL);
+	        gtk_widget_style_get(GTK_WIDGET (calendar), 
+	   	         	     "today-calendar-button-hover-color", &tcolor,
+				     NULL);
 	    else if (priv->today_state == KIRAN_PRESS)
-	        markup = g_strconcat ("<span foreground=\"#284fa3\" font_desc=\"Noto Sans CJK SC Regular 14\">", buffer, "</span>", NULL);
+	        gtk_widget_style_get(GTK_WIDGET (calendar), 
+	   	         	     "today-calendar-button-press-color", &tcolor,
+				     NULL);
 	    else
-	        markup = g_strconcat ("<span foreground=\"#568bfc\" font_desc=\"Noto Sans CJK SC Regular 14\">", buffer, "</span>", NULL);
+	        gtk_widget_style_get(GTK_WIDGET (calendar), 
+	   	         	     "today-calendar-button-normal-color", &tcolor,
+				     NULL);
+
         }
 	else
-	    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 14\">", buffer, "</span>", NULL);
+	{
+
+	    gtk_widget_style_get(GTK_WIDGET (calendar), 
+	   		    	 "today-calendar-color", &tcolor,
+				 NULL);
+
+	}
+
+	markup = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
+	g_free (tcolor);
+
 
 	layout = gtk_widget_create_pango_layout (widget, buffer);
         pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
@@ -904,65 +1012,111 @@ calendar_paint_lunar (KiranCalendar *calendar,
         g_free (markup);
         g_object_unref (layout);
     }
+    g_free (tfont);
 
     gtk_style_context_restore (context);
     cairo_restore (cr);
 }
 
 static void
+paint_one_arrow_with_color (cairo_t *cr,
+		            gint x,
+			    gint y,
+			    gint w,
+			    gint h,
+			    double red,
+			    double green,
+			    double blue,
+			    double alpha,
+			    gboolean is_prev)
+{
+    cairo_save (cr);
+    cairo_set_source_rgba(cr, red, green, blue, alpha);
+    cairo_set_line_width (cr, 1);
+    cairo_set_line_join (cr, CAIRO_LINE_JOIN_MITER);
+
+    if (is_prev)
+    {
+        cairo_move_to (cr, x + w, y);
+        cairo_line_to (cr, x, y + h/2);
+
+        cairo_move_to (cr, x, y + h/2);
+        cairo_line_to (cr, x + w, y + h);
+    }
+    else
+    {
+        cairo_move_to (cr, x, y);
+        cairo_line_to (cr, x + w, y + h/2);
+
+        cairo_move_to (cr, x + w, y + h/2);
+        cairo_line_to (cr, x, y + h);
+    }
+
+    cairo_stroke(cr);
+    cairo_restore (cr);
+}
+
+
+static void
 calendar_paint_arrows (KiranCalendar *calendar,
 	               cairo_t       *cr)
 {
     KiranCalendarPrivate *priv = calendar->priv;
-    cairo_surface_t *prev_year_image;
-    cairo_surface_t *next_year_image;
-    cairo_surface_t *prev_month_image;
-    cairo_surface_t *next_month_image;
+    GtkStyleContext *context;
+    GdkRGBA pycolor;
+    GdkRGBA pmcolor;
+    GdkRGBA nycolor;
+    GdkRGBA nmcolor;
     gint x;
 
+    context = gtk_widget_get_style_context (GTK_WIDGET (calendar));
     cairo_save (cr);
+    gtk_style_context_save (context);
+
 
     if (priv->prev_year_state == KIRAN_PRESS)
-	prev_year_image = priv->header_images[IMAGE_ARROW_YEAR_PREV_P];
+        gtk_style_context_lookup_color(context, "calendar_arrow_press_color", &pycolor);
     else if (priv->prev_year_state == KIRAN_HOVER)
-	prev_year_image = priv->header_images[IMAGE_ARROW_YEAR_PREV_H];
+        gtk_style_context_lookup_color(context, "calendar_arrow_hover_color", &pycolor);
     else
-	prev_year_image = priv->header_images[IMAGE_ARROW_YEAR_PREV_N];
+        gtk_style_context_lookup_color(context, "calendar_arrow_normal_color", &pycolor);
 
     if (priv->next_year_state == KIRAN_PRESS)
-	next_year_image = priv->header_images[IMAGE_ARROW_YEAR_NEXT_P];
+        gtk_style_context_lookup_color(context, "calendar_arrow_press_color", &nycolor);
     else if (priv->next_year_state == KIRAN_HOVER)
-	next_year_image = priv->header_images[IMAGE_ARROW_YEAR_NEXT_H];
+        gtk_style_context_lookup_color(context, "calendar_arrow_hover_color", &nycolor);
     else
-	next_year_image = priv->header_images[IMAGE_ARROW_YEAR_NEXT_N];
+        gtk_style_context_lookup_color(context, "calendar_arrow_normal_color", &nycolor);
 
     if (priv->prev_month_state == KIRAN_PRESS)
-	prev_month_image = priv->header_images[IMAGE_ARROW_MONTH_PREV_P];
+        gtk_style_context_lookup_color(context, "calendar_arrow_press_color", &pmcolor);
     else if (priv->prev_month_state == KIRAN_HOVER)
-	prev_month_image = priv->header_images[IMAGE_ARROW_MONTH_PREV_H];
+        gtk_style_context_lookup_color(context, "calendar_arrow_hover_color", &pmcolor);
     else
-	prev_month_image = priv->header_images[IMAGE_ARROW_MONTH_PREV_N];
+        gtk_style_context_lookup_color(context, "calendar_arrow_normal_color", &pmcolor);
 
     if (priv->next_month_state == KIRAN_PRESS)
-	next_month_image = priv->header_images[IMAGE_ARROW_MONTH_NEXT_P];
+        gtk_style_context_lookup_color(context, "calendar_arrow_press_color", &nmcolor);
     else if (priv->next_month_state == KIRAN_HOVER)
-	next_month_image = priv->header_images[IMAGE_ARROW_MONTH_NEXT_H];
+        gtk_style_context_lookup_color(context, "calendar_arrow_hover_color", &nmcolor);
     else
-	next_month_image = priv->header_images[IMAGE_ARROW_MONTH_NEXT_N];
+        gtk_style_context_lookup_color(context, "calendar_arrow_normal_color", &nmcolor);
 
     x = HEADER_LEFT_DIS;
-    cairo_set_source_surface (cr, prev_year_image, x,  HEADER_TOP_DIS);
-    cairo_paint (cr);
-    x = x + cairo_image_surface_get_width (prev_year_image) + HEADER_ARROW_SPACE;
-    cairo_set_source_surface (cr, prev_month_image, x, HEADER_TOP_DIS);
-    cairo_paint (cr);
-    x = CALENDA_WIDTH - HEADER_RIGHT_DIS - cairo_image_surface_get_width (next_year_image);
-    cairo_set_source_surface (cr, next_year_image, x, HEADER_TOP_DIS);
-    cairo_paint (cr);
-    x = x - cairo_image_surface_get_width (next_year_image) - HEADER_ARROW_SPACE - cairo_image_surface_get_width (next_month_image);
-    cairo_set_source_surface (cr, next_month_image, x, HEADER_TOP_DIS);
-    cairo_paint (cr);
+    paint_one_arrow_with_color (cr, x, HEADER_TOP_DIS, ARROW_WIDTH, ARROW_HEIGHT, pycolor.red, pycolor.green, pycolor.blue, pycolor.alpha, TRUE); 
+    paint_one_arrow_with_color (cr, x + ARROW_SPACE, HEADER_TOP_DIS, ARROW_WIDTH, ARROW_HEIGHT, pycolor.red, pycolor.green, pycolor.blue, pycolor.alpha, TRUE); 
 
+    x = x + ARROW_SPACE + ARROW_WIDTH + HEADER_ARROW_SPACE;
+    paint_one_arrow_with_color (cr, x, HEADER_TOP_DIS, ARROW_WIDTH, ARROW_HEIGHT, pmcolor.red, pmcolor.green, pmcolor.blue, pmcolor.alpha, TRUE); 
+
+    x = CALENDA_WIDTH - HEADER_RIGHT_DIS - ARROW_WIDTH;
+    paint_one_arrow_with_color (cr, x, HEADER_TOP_DIS, ARROW_WIDTH, ARROW_HEIGHT, nycolor.red, nycolor.green, nycolor.blue, nycolor.alpha, FALSE); 
+    paint_one_arrow_with_color (cr, x - ARROW_SPACE, HEADER_TOP_DIS, ARROW_WIDTH, ARROW_HEIGHT, nycolor.red, nycolor.green, nycolor.blue, nycolor.alpha, FALSE); 
+
+    x = x - HEADER_ARROW_SPACE - ARROW_WIDTH - ARROW_SPACE;
+    paint_one_arrow_with_color (cr, x, HEADER_TOP_DIS, ARROW_WIDTH, ARROW_HEIGHT, nmcolor.red, nmcolor.green, nmcolor.blue, nmcolor.alpha, FALSE); 
+
+    gtk_style_context_restore (context);
     cairo_restore (cr);
 
 }
@@ -982,11 +1136,26 @@ calendar_paint_header_text (KiranCalendar *calendar,
     GdkRectangle  rect;
     gint year_text_width;
     gint month_text_width;
+    gchar *tcolor;
+    gchar *tfont;
+    GdkRGBA color;
+    GdkRGBA ncolor;
+
+    gtk_widget_style_get(GTK_WIDGET (calendar), 
+	         	 "day-head-color", &tcolor,
+			 NULL);
+
+    gtk_widget_style_get(GTK_WIDGET (calendar), 
+	    	         "day-head-font", &tfont,
+		         NULL);
 
     cairo_save (cr);
 
     context = gtk_widget_get_style_context (widget);
     gtk_style_context_save (context);
+
+    gtk_style_context_lookup_color(context, "day_input_entry_select_color", &color);
+    gtk_style_context_lookup_color(context, "day_input_entry_normal_color", &ncolor);
   
     if (priv->year_input)
     {
@@ -995,7 +1164,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
     else
         g_snprintf (buffer, sizeof (buffer),  "%.4d", priv->year);
 
-    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 11\">", buffer, "</span>", NULL);
+    markup = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
     
     layout = gtk_widget_create_pango_layout (widget, buffer);
     pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
@@ -1024,7 +1193,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
 	rect.y = y_loc + SELECT_BOX_COLOR_Y_DIS;
 	rect.width = logical_rect.width;
 	rect.height = logical_rect.height - 2 * SELECT_BOX_COLOR_Y_DIS;
-        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 0.5, 0.33, 0.54, 0.98, 1, 2, FALSE, TRUE);
+        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 0.5, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
     }
 
 
@@ -1034,15 +1203,15 @@ calendar_paint_header_text (KiranCalendar *calendar,
     rect.height = logical_rect.height + 4;
 
     if (priv->year_input)
-        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 0.5, 1.0, 1.0, 1.0, 0.1, 2, TRUE, TRUE);
+        paint_round_rectangle (cr, &rect, color.red, color.green, color.blue, 0.5, ncolor.red, ncolor.green, ncolor.blue, ncolor.alpha, 2, TRUE, TRUE);
     else	
-        paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, 1, 1.0, 1.0, 1.0, 0.1, 2, FALSE, TRUE);
+        paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, 1, ncolor.red, ncolor.green, ncolor.blue, ncolor.alpha, 2, FALSE, TRUE);
 
     if (priv->year_text_input && priv->cursor_visible && !priv->year_text_select)
     {
 	cairo_save (cr);
 
-	cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
+	cairo_set_source_rgb (cr, ncolor.red, ncolor.green, ncolor.blue);
 	cairo_set_line_width (cr, 1);
 	cairo_move_to (cr, x_loc + year_text_width + 1, y_loc);
 	cairo_line_to (cr, x_loc + year_text_width + 1, y_loc + year_text_height);
@@ -1062,7 +1231,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
     else
         g_snprintf (buffer, sizeof (buffer),  "%s", "-");
 	
-    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 11\">", buffer, "</span>", NULL);
+    markup = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
     
     layout = gtk_widget_create_pango_layout (widget, buffer);
     pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
@@ -1082,7 +1251,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
     else
         g_snprintf (buffer, sizeof (buffer),  "%.2d", priv->month + 1);
 
-    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 11\">", buffer, "</span>", NULL);
+    markup = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
     
     layout = gtk_widget_create_pango_layout (widget, buffer);
     pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
@@ -1104,7 +1273,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
 	rect.y = y_loc + SELECT_BOX_COLOR_Y_DIS;
 	rect.width = logical_rect.width;
 	rect.height = logical_rect.height - 2 * SELECT_BOX_COLOR_Y_DIS;
-        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 0.5, 0.33, 0.54, 0.98, 1, 2, FALSE, TRUE);
+        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 0.5, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
     }
 
     rect.x = x_loc - HEADER_TEXT_SPACE/2;
@@ -1113,15 +1282,15 @@ calendar_paint_header_text (KiranCalendar *calendar,
     rect.height = logical_rect.height + 4;
 
     if (priv->month_input)
-        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 0.5, 1.0, 1.0, 1.0, 0.1, 2, TRUE, TRUE);
-    else
-        paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, 1, 1.0, 1.0, 1.0, 0.1, 2, FALSE, TRUE);
+        paint_round_rectangle (cr, &rect, color.red, color.green, color.blue, 0.5, ncolor.red, ncolor.green, ncolor.blue, ncolor.alpha, 2, TRUE, TRUE);
+    else	
+        paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, 1, ncolor.red, ncolor.green, ncolor.blue, ncolor.alpha, 2, FALSE, TRUE);
 
     if (priv->month_text_input && priv->cursor_visible && !priv->month_text_select)
     {
 	cairo_save (cr);
 
-	cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
+	cairo_set_source_rgb (cr, ncolor.red, ncolor.green, ncolor.blue);
 	cairo_set_line_width (cr, 1);
 	cairo_move_to (cr, x_loc + month_text_width + 1, y_loc);
 	cairo_line_to (cr, x_loc + month_text_width + 1, y_loc + year_text_height);
@@ -1141,7 +1310,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
     else
         g_snprintf (buffer, sizeof (buffer),  "%s", " ");
 	
-    markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 11\">", buffer, "</span>", NULL);
+    markup = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
     
     layout = gtk_widget_create_pango_layout (widget, buffer);
     pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
@@ -1155,6 +1324,9 @@ calendar_paint_header_text (KiranCalendar *calendar,
 
     gtk_style_context_restore (context);
     cairo_restore (cr);
+
+    g_free (tcolor);
+    g_free (tfont);
 }
 
 static void 
@@ -1177,7 +1349,17 @@ calendar_paint_daynames (KiranCalendar *calendar,
     gint i;
     gint x;
     gint space;
-    
+    gchar *tcolor;
+    gchar *tfont;
+
+    gtk_widget_style_get(GTK_WIDGET (calendar), 
+	         	 "day-names-color", &tcolor,
+			 NULL);
+
+    gtk_widget_style_get(GTK_WIDGET (calendar), 
+	    	         "day-names-font", &tfont,
+		         NULL);
+
     cairo_save (cr);
 
     context = gtk_widget_get_style_context (widget);
@@ -1190,7 +1372,7 @@ calendar_paint_daynames (KiranCalendar *calendar,
         gchar buffer[32];
 
 	g_snprintf (buffer, sizeof (buffer), "%s", default_abbreviated_dayname[i]);
-	markup = g_strconcat ("<span foreground=\"#ffffff\" font_desc=\"Noto Sans CJK SC Regular 10\">", buffer, "</span>", NULL);
+        markup = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
 
 	layout = gtk_widget_create_pango_layout (widget, buffer);
         pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
@@ -1215,6 +1397,8 @@ calendar_paint_daynames (KiranCalendar *calendar,
 
     gtk_style_context_restore (context);
     cairo_restore (cr);
+    g_free (tcolor);
+    g_free (tfont);
 }
 
 static void
