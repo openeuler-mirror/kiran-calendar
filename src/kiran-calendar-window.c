@@ -38,6 +38,22 @@ kiran_calendar_window_init (KiranCalendarWindow *window)
     gtk_container_set_border_width (GTK_CONTAINER (window), 0);
 }
 
+static 
+void tran_setup (GtkWidget *window)
+{
+    GdkScreen *screen;
+    GdkVisual *visual;
+
+    gtk_widget_set_app_paintable (window, TRUE);
+    screen = gdk_screen_get_default ();
+    visual = gdk_screen_get_rgba_visual (screen);
+
+    if (visual != NULL && gdk_screen_is_composited (screen))
+    {
+        gtk_widget_set_visual (window, visual);
+    }
+}
+
 static GObject *
 kiran_calendar_window_constructor (GType                  type,
                                    guint                  n_construct_properties,
@@ -51,6 +67,7 @@ kiran_calendar_window_constructor (GType                  type,
                                                                       construct_properties);
     win = KIRAN_CALENDAR_WINDOW (obj);
 
+    tran_setup (GTK_WIDGET (win));
     win->priv->calendar = kiran_calendar_new ();  
     gtk_widget_show (GTK_WIDGET (win->priv->calendar));
     gtk_container_add (GTK_CONTAINER (win), win->priv->calendar);
@@ -68,7 +85,7 @@ void
 kiran_calendar_window_show (KiranCalendarWindow *window)
 {
     
-    kiran_calendar_refresh (window->priv->calendar);
+    kiran_calendar_refresh (KIRAN_CALENDAR (window->priv->calendar));
     gtk_widget_show (GTK_WIDGET (window));
 }
 
