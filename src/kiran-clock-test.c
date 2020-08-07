@@ -2,10 +2,9 @@
 #include "kiran-clock.h"
 #include "kiran-calendar-window.h"
 
-static gboolean
-button_press (GtkWidget      *widget,
-	      GdkEventButton *event,
-	      gpointer       user_data)
+static void
+button_toggled (GtkWidget      *widget,
+                gpointer       user_data)
 {
     KiranCalendarWindow *window  = KIRAN_CALENDAR_WINDOW (user_data);
 
@@ -13,8 +12,6 @@ button_press (GtkWidget      *widget,
         kiran_calendar_window_hide (window);
     else
         kiran_calendar_window_show (window);
-
-    return TRUE;
 }
 
 int
@@ -44,7 +41,7 @@ main (int argc,
 
     g_signal_connect (window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
 
-    g_signal_connect (clock, "button-press-event", G_CALLBACK(button_press), calendar_window);
+    g_signal_connect (clock, "toggled", G_CALLBACK(button_toggled), calendar_window);
 
     gtk_widget_show (clock);
     gtk_widget_show (window);

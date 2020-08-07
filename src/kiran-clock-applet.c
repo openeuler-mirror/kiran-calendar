@@ -121,21 +121,28 @@ button_press (GtkWidget      *widget,
               GdkEventButton *event,
               gpointer       user_data)
 {
+    if (event->button != 1)
+    {
+	g_signal_stop_emission_by_name (widget, "button_press_event");
+    }
+
+    return FALSE;
+}
+
+static void
+button_toggled (GtkWidget      *widget,
+		gpointer       user_data)
+{
     KiranClockData *kcd  = user_data;
     KiranCalendarWindow *window  = KIRAN_CALENDAR_WINDOW (kcd->calendar_window);
 
-    if (event->button == GDK_BUTTON_PRIMARY)
+    if (gtk_widget_is_visible (GTK_WIDGET (window)))
+        kiran_calendar_window_hide (window);
+    else
     {
-        if (gtk_widget_is_visible (GTK_WIDGET (window)))
-            kiran_calendar_window_hide (window);
-        else
-	{
-            kiran_calendar_window_show (window);
-	    position_calendar_window (kcd);
-	}
+        kiran_calendar_window_show (window);
+ 	position_calendar_window (kcd);
     }
-
-    return TRUE;
 }
 
 static void
@@ -160,12 +167,14 @@ fill_clock_applet (MatePanelApplet *applet)
     kcd->calendar_window = kiran_calendar_window_new ();
     kcd->clock = kiran_clock_new (); 
 
+    gtk_toggle_button_set_mode (GTK_TOGGLE_BUTTON (kcd->clock),TRUE);
     gtk_container_add (GTK_CONTAINER (applet), kcd->clock);
     gtk_widget_show (kcd->clock);
     gtk_widget_show (GTK_WIDGET (kcd->applet));
     gtk_widget_set_size_request (kcd->clock, 80, mate_panel_applet_get_size (kcd->applet));
 
     g_signal_connect (G_OBJECT (kcd->clock), "button-press-event", G_CALLBACK(button_press), kcd);
+    g_signal_connect (G_OBJECT (kcd->clock), "toggled", G_CALLBACK(button_toggled), kcd);
     g_signal_connect (G_OBJECT (kcd->clock), "destroy", G_CALLBACK (destroy_clock), kcd);
 
     return TRUE;

@@ -23,14 +23,14 @@ typedef struct _KiranClockPrivate KiranClockPrivate;
 
 struct _KiranClock
 {
-    GtkEventBox parent;	
+    GtkToggleButton parent;	
 
     KiranClockPrivate *priv;
 };
 
 struct _KiranClockClass
 {
-    GtkEventBoxClass parent_class;
+    GtkToggleButtonClass parent_class;
 };
 
 GType kiran_clock_get_type 	(void);

@@ -24,7 +24,7 @@ static gboolean kiran_clock_enter_notify (GtkWidget        *widget,
 static gboolean kiran_clock_leave_notify (GtkWidget        *widget,
                                           GdkEventCrossing *event);
 
-G_DEFINE_TYPE_WITH_PRIVATE (KiranClock, kiran_clock, GTK_TYPE_EVENT_BOX)
+G_DEFINE_TYPE_WITH_PRIVATE (KiranClock, kiran_clock, GTK_TYPE_TOGGLE_BUTTON)
 
 static void
 kiran_clock_class_init (KiranClockClass *class)
