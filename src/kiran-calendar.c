@@ -820,7 +820,7 @@ calendar_paint_day (KiranCalendar *calendar,
 	    rect.width = day_rect.width - 2;
 	    rect.height = day_rect.height - 2;
 	    gtk_style_context_lookup_color(context, "day_box_select_color", &color);
-	    paint_round_rectangle (cr, &rect, color.red, color.green, color.blue, DAY_RECT_LINE_WIDTH, 0.33, 0.54, 0.98, 1, 2, TRUE, FALSE);
+	    paint_round_rectangle (cr, &rect, color.red, color.green, color.blue, color.alpha, DAY_RECT_LINE_WIDTH, 0.33, 0.54, 0.98, 1, 2, TRUE, FALSE);
 	    state |= GTK_STATE_FLAG_SELECTED;
 	    day_rect.height = day_rect.height + DAY_ROW_SPACE;
        
@@ -831,7 +831,7 @@ calendar_paint_day (KiranCalendar *calendar,
         {
             day_rect.height = day_rect.height - DAY_ROW_SPACE;
 	    gtk_style_context_lookup_color(context, "day_box_today_color", &color);
-            paint_round_rectangle (cr, &day_rect, 0.33, 0.54, 0.98, DAY_RECT_LINE_WIDTH, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
+            paint_round_rectangle (cr, &day_rect, 0.33, 0.54, 0.98, 1.0, DAY_RECT_LINE_WIDTH, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
             day_rect.height = day_rect.height + DAY_ROW_SPACE;
         }
     }
@@ -841,7 +841,7 @@ calendar_paint_day (KiranCalendar *calendar,
     {
         day_rect.height = day_rect.height - DAY_ROW_SPACE;
 	gtk_style_context_lookup_color(context, "day_box_hover_color", &color);
-	paint_round_rectangle (cr, &day_rect, 0.33, 0.54, 0.98, DAY_RECT_LINE_WIDTH, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
+	paint_round_rectangle (cr, &day_rect, 0.33, 0.54, 0.98, 1.0, DAY_RECT_LINE_WIDTH, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
 	day_rect.height = day_rect.height + DAY_ROW_SPACE;
     }
 
@@ -904,6 +904,7 @@ static void calendar_paint_background (KiranCalendar *calendar,
     GtkStyleContext *context;
     GtkAllocation allocation;
     GdkRectangle rect;
+    GdkRGBA color;
 
     gtk_widget_get_allocation (GTK_WIDGET (calendar), &allocation);
     context = gtk_widget_get_style_context (GTK_WIDGET (calendar));
@@ -916,11 +917,12 @@ static void calendar_paint_background (KiranCalendar *calendar,
     rect.width = allocation.width;
     rect.height = allocation.height;
 
+    gtk_style_context_lookup_color (context, "calendar_background_border_color", &color);
     gtk_style_context_get (context, gtk_style_context_get_state (context),
                              "background-color", &bg_rgba,
                               NULL);
 
-    paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, CALENDA_LINE_WIDTH, bg_rgba->red, bg_rgba->green, bg_rgba->blue, bg_rgba->alpha, 6, TRUE, TRUE);
+    paint_round_rectangle (cr, &rect, color.red, color.green, color.blue, color.alpha, CALENDA_LINE_WIDTH, bg_rgba->red, bg_rgba->green, bg_rgba->blue, bg_rgba->alpha, 6, TRUE, TRUE);
     
     cairo_restore (cr);
     gtk_style_context_restore (context);
@@ -1193,7 +1195,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
 	rect.y = y_loc + SELECT_BOX_COLOR_Y_DIS;
 	rect.width = logical_rect.width;
 	rect.height = logical_rect.height - 2 * SELECT_BOX_COLOR_Y_DIS;
-        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 0.5, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
+        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 0.5, 1.0, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
     }
 
 
@@ -1203,9 +1205,9 @@ calendar_paint_header_text (KiranCalendar *calendar,
     rect.height = logical_rect.height + 4;
 
     if (priv->year_input)
-        paint_round_rectangle (cr, &rect, color.red, color.green, color.blue, 0.5, ncolor.red, ncolor.green, ncolor.blue, ncolor.alpha, 2, TRUE, TRUE);
+        paint_round_rectangle (cr, &rect, color.red, color.green, color.blue, color.alpha, 0.5, ncolor.red, ncolor.green, ncolor.blue, ncolor.alpha, 2, TRUE, TRUE);
     else	
-        paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, 1, ncolor.red, ncolor.green, ncolor.blue, ncolor.alpha, 2, FALSE, TRUE);
+        paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, 1.0, 1, ncolor.red, ncolor.green, ncolor.blue, ncolor.alpha, 2, FALSE, TRUE);
 
     if (priv->year_text_input && priv->cursor_visible && !priv->year_text_select)
     {
@@ -1273,7 +1275,7 @@ calendar_paint_header_text (KiranCalendar *calendar,
 	rect.y = y_loc + SELECT_BOX_COLOR_Y_DIS;
 	rect.width = logical_rect.width;
 	rect.height = logical_rect.height - 2 * SELECT_BOX_COLOR_Y_DIS;
-        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 0.5, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
+        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 0.5, 1.0, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
     }
 
     rect.x = x_loc - HEADER_TEXT_SPACE/2;
@@ -1282,9 +1284,9 @@ calendar_paint_header_text (KiranCalendar *calendar,
     rect.height = logical_rect.height + 4;
 
     if (priv->month_input)
-        paint_round_rectangle (cr, &rect, color.red, color.green, color.blue, 0.5, ncolor.red, ncolor.green, ncolor.blue, ncolor.alpha, 2, TRUE, TRUE);
+        paint_round_rectangle (cr, &rect, color.red, color.green, color.blue, color.alpha, 0.5, ncolor.red, ncolor.green, ncolor.blue, ncolor.alpha, 2, TRUE, TRUE);
     else	
-        paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, 1, ncolor.red, ncolor.green, ncolor.blue, ncolor.alpha, 2, FALSE, TRUE);
+        paint_round_rectangle (cr, &rect, 1.0, 1.0, 1.0, 1.0, 1,ncolor.red, ncolor.green, ncolor.blue, ncolor.alpha, 2, FALSE, TRUE);
 
     if (priv->month_text_input && priv->cursor_visible && !priv->month_text_select)
     {

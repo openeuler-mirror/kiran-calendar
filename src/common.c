@@ -8,10 +8,11 @@ paint_round_rectangle (cairo_t       *cr,
                        gdouble        line_blue,
                        gdouble        line_green,
                        gdouble        line_width,
+                       gdouble        line_alpha,
                        gdouble        fill_red,
                        gdouble        fill_bule,
                        gdouble        fill_green,
-                       gdouble        alpha,
+                       gdouble        fill_alpha,
                        gdouble        radius,
                        gboolean       line,
                        gboolean       fill)
@@ -27,7 +28,7 @@ paint_round_rectangle (cairo_t       *cr,
 
     if (fill)
     {
-        cairo_set_source_rgba (cr, fill_red, fill_bule, fill_green, alpha);
+        cairo_set_source_rgba (cr, fill_red, fill_bule, fill_green, fill_alpha);
         if (line)
             cairo_fill_preserve (cr);
         else
@@ -36,7 +37,7 @@ paint_round_rectangle (cairo_t       *cr,
 
     if (line)
     {
-        cairo_set_source_rgba (cr, line_red, line_blue, line_green, 1.0);
+        cairo_set_source_rgba (cr, line_red, line_blue, line_green, line_alpha);
         cairo_set_line_width (cr, line_width);
         cairo_stroke (cr);
     }

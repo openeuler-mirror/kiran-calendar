@@ -6,11 +6,12 @@
 @define-color clock_box_hover_color rgba(25, 25, 25, 0.8);
 @define-color calendar_arrow_normal_color rgba(255, 255, 255, 1);
 @define-color calendar_arrow_hover_color rgba(85, 138, 250, 0.5);
-@define-color calendar_arrow_press_color rgba(85, 138, 250, 1);
+@define-color calendar_arrow_press_color rgba(85, 138, 250, 1.0);
+@define-color calendar_background_border_color rgba(25, 25, 25, 1.0);
 
 kirancalendar 
 {
-  background-color: rgba(25, 25, 25, 1.0); 
+  background-color: rgba(25, 25, 25, 1); 
   -KiranCalendar-today-calendar-color: '#ffffff'; 
   -KiranCalendar-today-calendar-button-normal-color: '#568bfc'; 
   -KiranCalendar-today-calendar-button-press-color:  '#284fa3'; 

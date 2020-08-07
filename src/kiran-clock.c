@@ -134,7 +134,7 @@ kiran_clock_draw (GtkWidget *widget,
         rect.width = width;
         rect.height = height;
 	gtk_style_context_lookup_color(context, "clock_box_hover_color", &color);
-        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 1, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
+        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 1, 1.0, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
 	
         cairo_restore (cr);
     }
