@@ -11,12 +11,12 @@ struct _KiranClockData
     MatePanelApplet *applet;
     GtkWidget *clock;
     GtkWidget *calendar_window;
+    MatePanelAppletOrient  orient;
 };
 
 static void
 position_calendar_window (KiranClockData *kcd)
 {
-    GtkRequisition  req;
     GtkAllocation   allocation;
     GdkDisplay     *display;
     GdkScreen      *screen;
@@ -36,9 +36,6 @@ position_calendar_window (KiranClockData *kcd)
                            &x, &y);
  
     gtk_window_get_size (GTK_WINDOW (kcd->calendar_window), &w, &h);
-    gtk_widget_get_preferred_size (kcd->calendar_window, &req, NULL);
-    w = req.width;
-    h = req.height;
  
     gtk_widget_get_allocation (kcd->clock, &allocation);
     button_w = allocation.width;
@@ -71,7 +68,7 @@ position_calendar_window (KiranClockData *kcd)
      * The orientations are all named backward from what
      * I expected.
      */
-    switch (mate_panel_applet_get_orient (kcd->applet)) {
+    switch (kcd->orient) {
     case MATE_PANEL_APPLET_ORIENT_RIGHT:
             x += button_w;
             if ((y + h) > monitor.y + monitor.height)
@@ -156,6 +153,17 @@ destroy_clock (GtkWidget *widget,
     g_free (kcd);
 }
 
+static void
+applet_change_orient (MatePanelApplet       *applet,
+                      MatePanelAppletOrient  orient,
+                      KiranClockData         *kcd)
+{
+    if (orient == kcd->orient)
+            return;
+
+    kcd->orient = orient;
+}
+
 static gboolean
 fill_clock_applet (MatePanelApplet *applet)
 {
@@ -176,6 +184,15 @@ fill_clock_applet (MatePanelApplet *applet)
     g_signal_connect (G_OBJECT (kcd->clock), "button-press-event", G_CALLBACK(button_press), kcd);
     g_signal_connect (G_OBJECT (kcd->clock), "toggled", G_CALLBACK(button_toggled), kcd);
     g_signal_connect (G_OBJECT (kcd->clock), "destroy", G_CALLBACK (destroy_clock), kcd);
+
+    g_signal_connect (G_OBJECT (applet),
+                          "change_orient",
+                          G_CALLBACK (applet_change_orient),
+                          kcd);
+
+    applet_change_orient (MATE_PANEL_APPLET (applet),
+                              mate_panel_applet_get_orient (MATE_PANEL_APPLET (applet)),
+                              kcd);
 
     return TRUE;
 }

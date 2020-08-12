@@ -26,16 +26,12 @@ kiran_calendar_window_init (KiranCalendarWindow *window)
     KiranCalendarWindowPrivate *priv;
 
     priv = window->priv = kiran_calendar_window_get_instance_private (window);
-    gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_POPUP_MENU);
+    gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_DOCK);
     gtk_window_set_decorated (GTK_WINDOW (window), FALSE);
     gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
     gtk_window_stick (GTK_WINDOW (window));
     gtk_window_set_title (GTK_WINDOW (window), "Kiran Calendar"); 
     gtk_window_set_default_size (GTK_WINDOW (window), CALENDA_WIDTH, CALENDA_HEIGHT);
-    gtk_window_set_decorated (GTK_WINDOW (window), FALSE);
-    gtk_window_set_skip_taskbar_hint (GTK_WINDOW (window), TRUE);
-    gtk_window_set_skip_pager_hint (GTK_WINDOW (window), TRUE);
-    gtk_container_set_border_width (GTK_CONTAINER (window), 0);
 }
 
 static 

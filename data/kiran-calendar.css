@@ -3,7 +3,7 @@
 @define-color day_box_hover_color rgba(255, 255, 255, 0.1);
 @define-color day_input_entry_select_color rgba(85, 138, 250, 1.0);
 @define-color day_input_entry_normal_color rgba(255, 255, 255, 0.1);
-@define-color clock_box_hover_color rgba(25, 25, 25, 0.8);
+@define-color clock_box_hover_color rgba(255, 255, 255, 0.2);
 @define-color calendar_arrow_normal_color rgba(255, 255, 255, 1);
 @define-color calendar_arrow_hover_color rgba(85, 138, 250, 0.5);
 @define-color calendar_arrow_press_color rgba(85, 138, 250, 1.0);
