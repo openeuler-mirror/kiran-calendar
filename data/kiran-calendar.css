@@ -1,0 +1,36 @@
+@define-color day_box_today_color rgba(85, 138, 250, 1.0);
+@define-color day_box_select_color rgba(85, 138, 250, 1.0);
+@define-color day_box_hover_color rgba(255, 255, 255, 0.1);
+@define-color day_input_entry_select_color rgba(85, 138, 250, 1.0);
+@define-color day_input_entry_normal_color rgba(255, 255, 255, 0.1);
+@define-color clock_box_hover_color rgba(255, 255, 255, 0.2);
+@define-color calendar_arrow_normal_color rgba(255, 255, 255, 1);
+@define-color calendar_arrow_hover_color rgba(85, 138, 250, 0.5);
+@define-color calendar_arrow_press_color rgba(85, 138, 250, 1.0);
+@define-color calendar_background_border_color rgba(25, 25, 25, 1.0);
+@define-color calendar_setting_btn_hover_color rgba(86, 145, 252, 1.0);
+@define-color calendar_setting_btn_press_color rgba(51, 86, 150, 1.0);
+
+kirancalendar 
+{
+  background-color: rgba(25, 25, 25, 1); 
+  -KiranCalendar-today-calendar-color: '#ffffff'; 
+  -KiranCalendar-today-calendar-button-normal-color: '#568bfc'; 
+  -KiranCalendar-today-calendar-button-press-color:  '#284fa3'; 
+  -KiranCalendar-today-calendar-button-hover-color:  '#97b8ff'; 
+  -KiranCalendar-day-current-month-color:  '#ffffff'; 
+  -KiranCalendar-day-other-month-color:  '#636363'; 
+  -KiranCalendar-day-names-color:  '#ffffff'; 
+  -KiranCalendar-day-head-color:  '#ffffff'; 
+  -KiranCalendar-today-font: 'Noto Sans CJK SC Regular 14'; 
+  -KiranCalendar-day-box-font: 'Noto Sans CJK SC Regular 10'; 
+  -KiranCalendar-day-box-lunar-font: 'Noto Sans CJK SC Regular 8'; 
+  -KiranCalendar-day-names-font: 'Noto Sans CJK SC Regular 10'; 
+  -KiranCalendar-day-head-font: 'Noto Sans CJK SC Regular 11'; 
+}
+
+kiranclock
+{
+    -KiranClock-text-color: '#ffffff';
+    -KiranClock-text-font: 'Noto Sans CJK SC Regular 10';
+}
