@@ -29,3 +29,4 @@ configure_file(
 
 filedir = join_paths(datadir, project_name)
 install_data('kiran-calendar.css', install_dir: filedir)
+install_data('setting_btn.svg', install_dir: filedir)

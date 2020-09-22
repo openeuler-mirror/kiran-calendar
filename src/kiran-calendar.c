@@ -62,6 +62,12 @@
 #define ARROW_HEIGHT 12
 #define ARROW_SPACE 4
 
+#define SETTING_BTN_SVG_PATH "/usr/share/kiran-calendar/setting_btn.svg"
+#define SETTING_BTN_SVG_W 16
+#define SETTING_BTN_SVG_H 16
+#define SETTING_BTN_RIGHT_DIS 18
+#define SETTING_BTN_TOP_DIS  34
+
 typedef enum
 {
      KIRAN_NORMAL,
@@ -104,6 +110,7 @@ struct _KiranCalendarPrivate
     GdkWindow *main_win;
     GdkWindow *day_win;
     GdkWindow *today_win;
+    GdkWindow *setting_btn_win;
     GdkWindow *arrow_win[4];
     GdkWindow *year_text_area;
     GdkWindow *month_text_area;
@@ -130,6 +137,7 @@ struct _KiranCalendarPrivate
     KiranCalendarState prev_month_state;
     KiranCalendarState next_month_state;
     KiranCalendarState today_state;
+    KiranCalendarState setting_btn_state;
 
     gboolean year_text_input;
     gboolean month_text_input;
@@ -145,6 +153,8 @@ struct _KiranCalendarPrivate
 
     gboolean year_text_select;
     gboolean month_text_select;
+
+    GdkPixbuf *setting_btn_svg;
 };
 
 static const guint month_length[2][13] =
@@ -360,6 +370,7 @@ kiran_calendar_date_init_i18n ()
 static void
 kiran_calendar_init (KiranCalendar *calendar)
 {
+    KiranCalendarPrivate *priv;
     char buffer[255];
     time_t tmp_time;
     gint i;
@@ -369,7 +380,7 @@ kiran_calendar_init (KiranCalendar *calendar)
     gtk_widget_set_can_focus (GTK_WIDGET (calendar), TRUE);
     gtk_widget_set_has_window (GTK_WIDGET (calendar), TRUE);
 
-    calendar->priv = kiran_calendar_get_instance_private (calendar);
+    priv = calendar->priv = kiran_calendar_get_instance_private (calendar);
 
     if (!default_abbreviated_dayname[0])
     for (i=0; i<7; i++)
@@ -387,6 +398,10 @@ kiran_calendar_init (KiranCalendar *calendar)
 #endif
     }
 
+    priv->setting_btn_svg = gdk_pixbuf_new_from_file_at_size (SETTING_BTN_SVG_PATH, 
+		    					      SETTING_BTN_SVG_W, SETTING_BTN_SVG_H, 
+							      NULL);
+
     kiran_calendar_refresh (calendar);
 }
 
@@ -400,6 +415,11 @@ kiran_calendar_finalize (GObject *object)
     
     if (priv->blink_timeout)
         g_source_remove (priv->blink_timeout);
+
+    if (priv->setting_btn_svg)
+    {
+	g_object_unref (priv->setting_btn_svg);
+    }
 
     G_OBJECT_CLASS (kiran_calendar_parent_class)->finalize (object);
 }
@@ -579,6 +599,13 @@ kiran_calendar_realize(GtkWidget *widget)
                                          attributes_mask);
     gtk_widget_register_window (widget, priv->today_win);
 
+    attributes.x = allocation.x + (CALENDA_WIDTH - SETTING_BTN_RIGHT_DIS - SETTING_BTN_SVG_W);
+    attributes.y = allocation.y + SETTING_BTN_TOP_DIS;
+    priv->setting_btn_win = gdk_window_new (gtk_widget_get_window (widget),
+                                         &attributes,
+                                         attributes_mask);
+    gtk_widget_register_window (widget, priv->setting_btn_win);
+
     attributes.cursor = gdk_cursor_new_from_name (gtk_widget_get_display (widget), "text");
     attributes_mask |= GDK_WA_CURSOR;
     attributes_mask |= GDK_KEY_PRESS_MASK;
@@ -628,6 +655,13 @@ kiran_calendar_unrealize(GtkWidget *widget)
 	gtk_widget_unregister_window (widget, priv->today_win);
         gdk_window_destroy (priv->today_win);
         priv->today_win = NULL;
+    }
+
+    if (priv->setting_btn_win != NULL )
+    {
+	gtk_widget_unregister_window (widget, priv->setting_btn_win);
+        gdk_window_destroy (priv->setting_btn_win);
+        priv->setting_btn_win = NULL;
     }
 
     if (priv->year_text_area != NULL )
@@ -682,6 +716,9 @@ kiran_calendar_map(GtkWidget *widget)
     if (priv->today_win)
         gdk_window_show (priv->today_win);
 
+    if (priv->setting_btn_win)
+        gdk_window_show (priv->setting_btn_win);
+
     if (priv->year_text_area)
         gdk_window_show (priv->year_text_area);
 
@@ -720,6 +757,9 @@ kiran_calendar_unmap(GtkWidget *widget)
 
     if (priv->today_win)
         gdk_window_hide (priv->today_win);
+
+    if (priv->setting_btn_win)
+        gdk_window_hide (priv->setting_btn_win);
 
     if (priv->year_text_area)
         gdk_window_hide (priv->year_text_area);
@@ -1015,6 +1055,51 @@ calendar_paint_lunar (KiranCalendar *calendar,
         g_object_unref (layout);
     }
     g_free (tfont);
+
+    gtk_style_context_restore (context);
+    cairo_restore (cr);
+}
+
+static void 
+calendar_paint_setting_btn (KiranCalendar *calendar, 
+		      cairo_t       *cr)
+{
+    KiranCalendarPrivate *priv = calendar->priv;
+    cairo_pattern_t *pattern;
+    gdouble pixbuf_x, pixbuf_y;
+    GdkRGBA color;
+    GtkStyleContext *context;
+
+
+    if (!priv->setting_btn_svg)
+	return;
+
+    context = gtk_widget_get_style_context (GTK_WIDGET (calendar));
+    cairo_save (cr);
+    gtk_style_context_save (context);
+
+    pixbuf_x = CALENDA_WIDTH - SETTING_BTN_RIGHT_DIS - SETTING_BTN_SVG_W;
+    pixbuf_y = SETTING_BTN_TOP_DIS;
+
+    if (priv->setting_btn_state == KIRAN_NORMAL)
+    {
+        gdk_cairo_set_source_pixbuf (cr, priv->setting_btn_svg, pixbuf_x, pixbuf_y);
+        cairo_paint (cr);
+    }
+    else
+    {
+	if (priv->setting_btn_state == KIRAN_PRESS)
+	    gtk_style_context_lookup_color(context, "calendar_setting_btn_press_color", &color);
+	else
+	    gtk_style_context_lookup_color(context, "calendar_setting_btn_hover_color", &color);
+
+        cairo_push_group (cr);
+        gdk_cairo_set_source_pixbuf (cr, priv->setting_btn_svg, pixbuf_x, pixbuf_y);
+        cairo_paint (cr);
+        pattern = cairo_pop_group (cr);
+        cairo_set_source_rgba(cr, color.red, color.green, color.blue, color.alpha);
+        cairo_mask (cr, pattern);
+    }
 
     gtk_style_context_restore (context);
     cairo_restore (cr);
@@ -1429,6 +1514,7 @@ kiran_calendar_draw (GtkWidget *widget,
 
     calendar_paint_background (calendar, cr);
     calendar_paint_lunar (calendar, cr);
+    calendar_paint_setting_btn (calendar, cr);
     calendar_paint_separate_line (calendar, cr, SEPARATE_LINE_TOP_DIS);
     calendar_paint_header (calendar, cr);
     calendar_paint_daynames (calendar, cr);
@@ -1640,6 +1726,18 @@ calendar_today_button_press (KiranCalendar  *calendar,
     gtk_widget_queue_draw (GTK_WIDGET (calendar));
 }
 
+static void 
+calendar_setting_button_press (KiranCalendar  *calendar,
+                               GdkEventButton  *event)
+{
+    GError *error = NULL;
+
+    if (!g_spawn_command_line_async ("kiran-timedate-manager", &error))
+    {
+	g_warning ("kiran calendar: %s\n", error->message);	
+    }
+}
+
 static void
 show_cursor (KiranCalendar *calendar)
 {
@@ -1779,13 +1877,16 @@ kiran_calendar_button_press (GtkWidget      *widget,
 
     if (event->window == priv->today_win)
     {
+        priv->today_state = KIRAN_PRESS;
+	calendar_redraw_component (calendar, priv->today_win);
         calendar_today_button_press (calendar, event);
     }
 
-    if (event->window == priv->today_win)
+    if (event->window == priv->setting_btn_win)
     {
-        priv->today_state = KIRAN_PRESS;
-	calendar_redraw_component (calendar, priv->today_win);
+        priv->setting_btn_state = KIRAN_PRESS;
+	calendar_setting_button_press (calendar, event);
+	calendar_redraw_component (calendar, priv->setting_btn_win);
     }
 
     if (event->window == priv->year_text_area)
@@ -1845,6 +1946,12 @@ kiran_calendar_button_release (GtkWidget      *widget,
     {
         priv->today_state = KIRAN_HOVER;
 	calendar_redraw_component (calendar, priv->today_win);
+    }
+
+    if (event->window == priv->setting_btn_win)
+    {
+        priv->setting_btn_state = KIRAN_HOVER;
+	calendar_redraw_component (calendar, priv->setting_btn_win);
     }
 
     return TRUE;
@@ -1910,6 +2017,12 @@ kiran_calendar_enter_notify (GtkWidget        *widget,
 	calendar_redraw_component (calendar, priv->today_win);
     }
 
+    if (event->window == priv->setting_btn_win)
+    {
+        priv->setting_btn_state = KIRAN_HOVER;
+	calendar_redraw_component (calendar, priv->setting_btn_win);
+    }
+
     return TRUE;
 }
 
@@ -1938,6 +2051,12 @@ kiran_calendar_leave_notify (GtkWidget        *widget,
     {
         priv->today_state = KIRAN_NORMAL;
 	calendar_redraw_component (calendar, priv->today_win);
+    }
+
+    if (event->window == priv->setting_btn_win)
+    {
+        priv->setting_btn_state = KIRAN_NORMAL;
+	calendar_redraw_component (calendar, priv->setting_btn_win);
     }
 
     return TRUE;
