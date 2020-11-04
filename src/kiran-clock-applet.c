@@ -3,6 +3,10 @@
 
 #include "kiran-clock.h"
 #include "kiran-calendar-window.h"
+#include "config.h"
+#include <glib/gi18n.h>
+
+#define CLOCK_ICON "mate-panel-clock"
 
 typedef struct _KiranClockData KiranClockData;
 
@@ -13,6 +17,44 @@ struct _KiranClockData
     GtkWidget *calendar_window;
     MatePanelAppletOrient  orient;
 };
+
+static void display_about_dialog      (GtkAction       *action,
+                                       KiranClockData  *kcd);
+
+static const GtkActionEntry kiran_clock_menu_actions [] = {
+	{ "KiranClockAbout", "kiran-help-about", N_("_About"),
+          NULL, NULL,
+          G_CALLBACK (display_about_dialog) }
+};
+
+static void 
+display_about_dialog(GtkAction       *action, 
+		     KiranClockData  *kcd)
+{
+        static const gchar* authors[] = {
+                "wangxiaoqing <wangxiaoqing@kylinos.com.cn>",
+                "songchuanfei <songchuanfei@kylinos.com.cn>",
+                NULL
+        };
+
+        static const char* documenters[] = {
+                "HuNan Kylin <www@kylinsec.com.cn>",
+                NULL
+        };
+
+        gtk_show_about_dialog(NULL,
+                "program-name", _("Clock"),
+                "title", _("About Clock"),
+                "authors", authors,
+                "comments", _("The Clock displays the current time and date"),
+                "copyright", _("Copyright \xc2\xa9 2020-2030 KylinSec Software Foundation, Inc"),
+                "documenters", documenters,
+                "logo-icon-name", CLOCK_ICON,
+                "translator-credits", _("translator-credits"),
+                "version", VERSION,
+                "website", "http://www.kylinsec.com.cn",
+                NULL);
+}
 
 static void
 position_calendar_window (KiranClockData *kcd)
@@ -168,6 +210,8 @@ static gboolean
 fill_clock_applet (MatePanelApplet *applet)
 {
     KiranClockData *kcd;
+    GtkActionGroup *action_group;
+    GtkAction      *action;
 
     kcd = g_new0 (KiranClockData, 1);
 
@@ -194,6 +238,17 @@ fill_clock_applet (MatePanelApplet *applet)
                               mate_panel_applet_get_orient (MATE_PANEL_APPLET (applet)),
                               kcd);
 
+    action_group = gtk_action_group_new ("KiranClockApplet Menu Actions");
+    gtk_action_group_set_translation_domain (action_group, GETTEXT_PACKAGE);
+    gtk_action_group_add_actions (action_group,
+                                  kiran_clock_menu_actions,
+                                  G_N_ELEMENTS (kiran_clock_menu_actions),
+                                  kcd);
+    mate_panel_applet_setup_menu (MATE_PANEL_APPLET (kcd->applet),
+                                  "<menuitem name=\"Kiran Clock About Item\" action=\"KiranClockAbout\" />",
+                                  action_group);
+
+
     return TRUE;
 }
 
@@ -207,6 +262,10 @@ kiran_clock_factory (MatePanelApplet *applet,
     GdkScreen *screen;
     GdkDisplay *display;
     GFile *css_fp;
+
+    bindtextdomain (GETTEXT_PACKAGE, KIRAN_CALENDAR_DATE_LOCALEDIR);
+    textdomain (GETTEXT_PACKAGE);
+
     provider = gtk_css_provider_new ();
     display = gdk_display_get_default ();
     screen = gdk_display_get_default_screen (display);

@@ -27,3 +27,18 @@ msgstr "%d 年 %d 月"
 #: src/kiran-calendar.c:1105
 msgid "Today"
 msgstr "今天"
+
+msgid "_About"
+msgstr "关于"
+
+msgid "Clock"
+msgstr "时钟"
+
+msgid "About Clock"
+msgstr "关于时钟"
+
+msgid "The Clock displays the current time and date"
+msgstr "显示当前时间和日期"
+
+msgid "Copyright \xc2\xa9 2020-2030 KylinSec Software Foundation, Inc"
+msgstr "Copyright©湖南麒麟信安 版权所有"
