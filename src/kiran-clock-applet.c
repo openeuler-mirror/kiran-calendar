@@ -266,6 +266,8 @@ kiran_clock_factory (MatePanelApplet *applet,
     bindtextdomain (GETTEXT_PACKAGE, KIRAN_CALENDAR_DATE_LOCALEDIR);
     textdomain (GETTEXT_PACKAGE);
 
+    mate_panel_applet_set_flags (applet, MATE_PANEL_APPLET_EXPAND_MINOR);
+
     provider = gtk_css_provider_new ();
     display = gdk_display_get_default ();
     screen = gdk_display_get_default_screen (display);
