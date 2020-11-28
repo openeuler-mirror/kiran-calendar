@@ -40,5 +40,5 @@ msgstr "关于时钟"
 msgid "The Clock displays the current time and date"
 msgstr "显示当前时间和日期"
 
-msgid "Copyright \xc2\xa9 2020-2030 KylinSec Software Foundation, Inc"
-msgstr "Copyright©湖南麒麟信安 版权所有"
+msgid "Copyright ©2020 KylinSec. All rights reserved."
+msgstr "©2020 KylinSec. 保留所有权利."
