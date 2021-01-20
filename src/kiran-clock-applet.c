@@ -206,6 +206,26 @@ applet_change_orient (MatePanelApplet       *applet,
     kcd->orient = orient;
 }
 
+static void
+applet_change_size (MatePanelApplet *applet,
+                    gint            size,
+                    KiranClockData  *kcd)
+{
+    gint width;
+
+    width = 0;
+
+    gtk_widget_style_get(kcd->clock,
+                         "box-width", &width,
+                         NULL);
+
+    gtk_widget_set_size_request (kcd->clock, 
+		                 width, 
+		    		 mate_panel_applet_get_size (kcd->applet));
+
+    gtk_widget_queue_draw (kcd->clock);
+}
+
 static gboolean
 fill_clock_applet (MatePanelApplet *applet)
 {
@@ -223,7 +243,7 @@ fill_clock_applet (MatePanelApplet *applet)
     gtk_container_add (GTK_CONTAINER (applet), kcd->clock);
     gtk_widget_show (kcd->clock);
     gtk_widget_show (GTK_WIDGET (kcd->applet));
-    gtk_widget_set_size_request (kcd->clock, 80, mate_panel_applet_get_size (kcd->applet));
+    applet_change_size (kcd->applet, mate_panel_applet_get_size (kcd->applet), kcd);
 
     g_signal_connect (G_OBJECT (kcd->clock), "button-press-event", G_CALLBACK(button_press), kcd);
     g_signal_connect (G_OBJECT (kcd->clock), "toggled", G_CALLBACK(button_toggled), kcd);
@@ -232,6 +252,11 @@ fill_clock_applet (MatePanelApplet *applet)
     g_signal_connect (G_OBJECT (applet),
                           "change_orient",
                           G_CALLBACK (applet_change_orient),
+                          kcd);
+
+    g_signal_connect (G_OBJECT (applet),
+                          "change-size",
+                          G_CALLBACK (applet_change_size),
                           kcd);
 
     applet_change_orient (MATE_PANEL_APPLET (applet),
@@ -266,7 +291,7 @@ kiran_clock_factory (MatePanelApplet *applet,
     bindtextdomain (GETTEXT_PACKAGE, KIRAN_CALENDAR_DATE_LOCALEDIR);
     textdomain (GETTEXT_PACKAGE);
 
-    mate_panel_applet_set_flags (applet, MATE_PANEL_APPLET_EXPAND_MINOR);
+    mate_panel_applet_set_flags (applet, MATE_PANEL_APPLET_EXPAND_MINOR | MATE_PANEL_APPLET_HAS_HANDLE);
 
     provider = gtk_css_provider_new ();
     display = gdk_display_get_default ();

@@ -33,4 +33,5 @@ kiranclock
 {
     -KiranClock-text-color: '#ffffff';
     -KiranClock-text-font: 'Noto Sans CJK SC Regular 10';
+    -KiranClock-box-width: 80px;
 }

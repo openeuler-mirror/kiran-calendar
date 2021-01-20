@@ -54,6 +54,14 @@ kiran_clock_class_init (KiranClockClass *class)
                                                                 "",
                                                                 G_PARAM_READABLE));
 
+    gtk_widget_class_install_style_property (widget_class,
+                                           g_param_spec_int ("box-width",
+                                                             "Box width",
+                                                             "Box width",
+							     -1, G_MAXINT,
+                                                             -1,
+                                                             G_PARAM_READABLE));
+
    
     gtk_widget_class_set_css_name (widget_class, "kiranclock");
 };
@@ -96,8 +104,10 @@ kiran_clock_draw (GtkWidget *widget,
     KiranClockPrivate *priv;
     gint width, height;
     GtkStyleContext *context;
-    PangoLayout *layout;
-    PangoRectangle logical_rect;
+    PangoLayout *time_layout;
+    PangoLayout *date_layout;
+    PangoRectangle time_logical_rect;
+    PangoRectangle date_logical_rect;
     gint x_loc, y_loc;
     gchar buffer[32];
     gchar *markup;
@@ -119,7 +129,7 @@ kiran_clock_draw (GtkWidget *widget,
     gtk_style_context_save (context);
 
     width = gtk_widget_get_allocated_width (widget);
-    height = gtk_widget_get_allocated_width (widget);
+    height = gtk_widget_get_allocated_height (widget);
 
     if (priv->is_hover)
     {
@@ -155,20 +165,11 @@ kiran_clock_draw (GtkWidget *widget,
 	
     markup = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
 
-    layout = gtk_widget_create_pango_layout (widget, buffer);
-    pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
-    pango_layout_set_markup (layout, markup, -1);
-    pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
-
-    x_loc = (width - logical_rect.width) / 2;
-    y_loc = 0;
-
-    gtk_render_layout (context, cr, x_loc, y_loc, layout);
-
+    time_layout = gtk_widget_create_pango_layout (widget, buffer);
+    pango_layout_set_alignment (time_layout, PANGO_ALIGN_CENTER);
+    pango_layout_set_markup (time_layout, markup, -1);
     g_free (markup);
-    g_object_unref (layout);
 
-    y_loc = y_loc + logical_rect.height;
 
     if (priv->show_long_date_format)
     {
@@ -181,17 +182,26 @@ kiran_clock_draw (GtkWidget *widget,
         strftime (buffer, sizeof (buffer), "%Y-%m-%d", &(priv->time));
 
     markup = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
-    layout = gtk_widget_create_pango_layout (widget, buffer);
-    pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
-    pango_layout_set_markup (layout, markup, -1);
-    pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
-
-    x_loc = (width - logical_rect.width) / 2; 
-
-    gtk_render_layout (context, cr, x_loc, y_loc, layout);
-
+    date_layout = gtk_widget_create_pango_layout (widget, buffer);
+    pango_layout_set_alignment (date_layout, PANGO_ALIGN_CENTER);
+    pango_layout_set_markup (date_layout, markup, -1);
     g_free (markup);
-    g_object_unref (layout);
+
+    pango_layout_get_pixel_extents (time_layout, NULL, &time_logical_rect);
+    pango_layout_get_pixel_extents (date_layout, NULL, &date_logical_rect);
+
+
+    y_loc = (height - (time_logical_rect.height + date_logical_rect.height)) / 2;
+
+    x_loc = (width - time_logical_rect.width) / 2;
+    gtk_render_layout (context, cr, x_loc, y_loc, time_layout);
+
+    y_loc = y_loc + time_logical_rect.height;
+    x_loc = (width - date_logical_rect.width) / 2; 
+    gtk_render_layout (context, cr, x_loc, y_loc, date_layout);
+
+    g_object_unref (time_layout);
+    g_object_unref (date_layout);
  
     cairo_restore (cr);
     gtk_style_context_restore (context);
