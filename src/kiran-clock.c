@@ -1,15 +1,31 @@
 #include "kiran-clock.h"
 #include "common.h"
 
+#define CALENDAR_SCHEMA "com.unikylin.Kiran.kiran-calendar"
+#define KEY_CLOCK_FORMAT "clock-format"
+#define KEY_LONG_DATE_FORMAT  "long-date-format"
+#define KEY_SHORT_DATE_FORMAT  "short-date-format"
+#define KEY_SHOW_SECONDS "show-seconds"
+
+typedef enum {
+        CLOCK_FORMAT_12,
+        CLOCK_FORMAT_24
+} ClockFormat;
+
 struct _KiranClockPrivate
 {
     struct tm time;
 
     gint refresh_timeout; 
-    gboolean show_second;
-    gboolean show_long_date_format;
-    gboolean show_24_hour;
     gboolean is_hover;
+
+    //time and date settings
+    gboolean show_second;
+    gchar *long_date_format;
+    gchar *short_date_format;
+    ClockFormat clock_format;
+    
+    GSettings *settings;
 };
 
 static void kiran_clock_finalize        (GObject *object);
@@ -67,6 +83,82 @@ kiran_clock_class_init (KiranClockClass *class)
 };
 
 static void
+clock_format_changed (GSettings    *settings,
+                      gchar        *key,
+                      KiranClock   *clock)
+{  
+    KiranClockPrivate *priv;
+    int new_format;
+
+    priv = kiran_clock_get_instance_private (clock);
+    new_format = g_settings_get_enum (settings, key);
+
+    if (new_format == priv->clock_format)
+	return;
+
+    priv->clock_format = new_format;
+
+    kiran_clock_refresh (clock);
+}
+
+static void
+long_date_format_changed (GSettings    *settings,
+                      gchar        *key,
+                      KiranClock   *clock)
+{
+    KiranClockPrivate *priv;
+
+    priv = kiran_clock_get_instance_private (clock);
+
+    g_free ( priv->long_date_format);
+    priv->long_date_format = g_settings_get_string (settings, key);
+
+    kiran_clock_refresh (clock);
+}
+
+static void
+short_date_format_changed (GSettings    *settings,
+                      gchar        *key,
+                      KiranClock   *clock)
+{
+    KiranClockPrivate *priv;
+
+    priv = kiran_clock_get_instance_private (clock);
+
+    g_free ( priv->short_date_format);
+    priv->short_date_format = g_settings_get_string (settings, key);
+
+    kiran_clock_refresh (clock);
+}
+
+static void
+show_seconds_changed (GSettings    *settings,
+                      gchar        *key,
+                      KiranClock   *clock)
+{
+    KiranClockPrivate *priv;
+    gint timeout = 60000;
+
+    priv = kiran_clock_get_instance_private (clock);
+    priv->show_second = g_settings_get_boolean(priv->settings, KEY_SHOW_SECONDS);
+
+    if (priv->show_second)
+        timeout = 1000;
+
+    if (priv->refresh_timeout)
+    {
+        g_source_remove (priv->refresh_timeout);
+    }
+
+    priv->refresh_timeout = gdk_threads_add_timeout (timeout,
+                                                   kiran_clock_refresh,
+                                                   clock);
+    g_source_set_name_by_id (priv->refresh_timeout, "[kiran]kiran_clock_refresh");
+
+    kiran_clock_refresh (clock);
+}
+
+static void
 kiran_clock_init (KiranClock *clock)
 {
     KiranClockPrivate *priv;
@@ -78,9 +170,18 @@ kiran_clock_init (KiranClock *clock)
     time (&timet);
     localtime_r (&timet, &priv->time);
 
-    priv->show_second = FALSE;
-    priv->show_long_date_format = FALSE;
-    priv->show_24_hour = TRUE;
+    priv->settings = g_settings_new (CALENDAR_SCHEMA);
+
+    priv->clock_format = g_settings_get_enum (priv->settings, KEY_CLOCK_FORMAT);
+    priv->long_date_format = g_settings_get_string (priv->settings, KEY_LONG_DATE_FORMAT);
+    priv->short_date_format =g_settings_get_string (priv->settings, KEY_SHORT_DATE_FORMAT);
+    priv->show_second = g_settings_get_boolean(priv->settings, KEY_SHOW_SECONDS);
+
+    g_signal_connect (priv->settings, "changed::" KEY_CLOCK_FORMAT, G_CALLBACK (clock_format_changed), clock);
+    g_signal_connect (priv->settings, "changed::" KEY_LONG_DATE_FORMAT, G_CALLBACK (long_date_format_changed), clock);
+    g_signal_connect (priv->settings, "changed::" KEY_SHORT_DATE_FORMAT, G_CALLBACK (short_date_format_changed), clock);
+    g_signal_connect (priv->settings, "changed::" KEY_SHOW_SECONDS, G_CALLBACK (show_seconds_changed), clock);
+
     priv->is_hover = FALSE;
 }
 
@@ -89,11 +190,18 @@ kiran_clock_finalize (GObject *object)
 {
     KiranClockPrivate *priv = KIRAN_CLOCK (object)->priv;
 
+    if (priv->settings)
+        g_object_unref (priv->settings);
+    priv->settings = NULL;
+
     if (priv->refresh_timeout)
     {
         g_source_remove (priv->refresh_timeout);
         priv->refresh_timeout = 0;
     }
+
+    g_free ( priv->long_date_format);
+    g_free ( priv->short_date_format);
 
     G_OBJECT_CLASS (kiran_clock_parent_class)->finalize (object);
 }
@@ -150,14 +258,14 @@ kiran_clock_draw (GtkWidget *widget,
     }
     if (priv->show_second)
     {
-	if (priv->show_24_hour)
+	if (priv->clock_format == CLOCK_FORMAT_24)
    	    strftime (buffer, sizeof (buffer), "%H:%M:%S", &(priv->time));
 	else
 	    strftime (buffer, sizeof (buffer), "%p %l:%M:%S", &(priv->time));
     }
     else
     {
-	if (priv->show_24_hour)
+	if (priv->clock_format == CLOCK_FORMAT_24)
    	    strftime (buffer, sizeof (buffer), "%H:%M", &(priv->time));
 	else
    	    strftime (buffer, sizeof (buffer), "%p %l:%M", &(priv->time));
@@ -171,15 +279,18 @@ kiran_clock_draw (GtkWidget *widget,
     g_free (markup);
 
 
-    if (priv->show_long_date_format)
+    if (g_strcmp0 (priv->short_date_format, "") == 0)
     {
+	//默认格式
 	if (g_getenv ("LANG") && g_strrstr (g_getenv ("LANG"), "zh_CN"))
-	    strftime (buffer, sizeof (buffer), "%Y年%m月%d日", &(priv->time));
+            strftime (buffer, sizeof (buffer), "%Y/%m/%d", &(priv->time));
 	else
-	    strftime (buffer, sizeof (buffer), "%B %d, %Y", &(priv->time));
+            strftime (buffer, sizeof (buffer), "%m/%d/%Y", &(priv->time));
     }
     else
-        strftime (buffer, sizeof (buffer), "%Y-%m-%d", &(priv->time));
+    {
+	strftime (buffer, sizeof (buffer), priv->short_date_format, &(priv->time));
+    }
 
     markup = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
     date_layout = gtk_widget_create_pango_layout (widget, buffer);
@@ -212,6 +323,28 @@ kiran_clock_draw (GtkWidget *widget,
     return FALSE;
 }
 
+static void
+kiran_clock_update_tooltip (KiranClock *clock)
+{
+    KiranClockPrivate *priv = clock->priv;
+    gchar buffer[32];
+
+    if (g_strcmp0 (priv->long_date_format, "") == 0)
+    {
+	//默认格式
+        if (g_getenv ("LANG") && g_strrstr (g_getenv ("LANG"), "zh_CN"))
+            strftime (buffer, sizeof (buffer), "%A,%Y年%m月%d日", &(priv->time));
+        else
+            strftime (buffer, sizeof (buffer), "%A,%B %d,%Y", &(priv->time));
+    }
+    else
+    {
+	strftime (buffer, sizeof (buffer), priv->long_date_format, &(priv->time));
+    }
+
+    gtk_widget_set_tooltip_text (GTK_WIDGET (clock), buffer);
+}
+
 static gboolean
 kiran_clock_refresh (gpointer data)
 {
@@ -221,6 +354,7 @@ kiran_clock_refresh (gpointer data)
 
     time (&timet);
     localtime_r (&timet, &priv->time);
+    kiran_clock_update_tooltip (clock);
 
     gtk_widget_queue_draw (GTK_WIDGET (clock));
 

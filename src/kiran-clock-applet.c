@@ -175,6 +175,8 @@ button_toggled (GtkWidget      *widget,
     KiranClockData *kcd  = user_data;
     KiranCalendarWindow *window  = KIRAN_CALENDAR_WINDOW (kcd->calendar_window);
 
+    gtk_widget_set_has_tooltip (widget, FALSE);
+
     if (gtk_widget_is_visible (GTK_WIDGET (window)))
         kiran_calendar_window_hide (window);
     else

@@ -16,6 +16,7 @@ project_version = meson.project_version()
 prefix = get_option('prefix')
 datadir = join_paths(prefix, get_option('datadir'))
 libexecdir = join_paths(prefix, get_option('libexecdir'))
+schemadir = join_paths (datadir, 'glib-2.0', 'schemas')
 
 i18n  = import('i18n')
 

@@ -27,6 +27,14 @@ configure_file(
   install_dir: serivedir
 )
 
+schemaconf = configuration_data()
+configure_file (
+    input: 'com.unikylin.Kiran.kiran-calendar.gschema.xml.in',
+    output: 'com.unikylin.Kiran.kiran-calendar.gschema.xml',
+    configuration: schemaconf,
+    install_dir: schemadir
+)
+
 filedir = join_paths(datadir, project_name)
 install_data('kiran-calendar.css', install_dir: filedir)
 install_data('setting_btn.svg', install_dir: filedir)
