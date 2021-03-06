@@ -24,6 +24,19 @@ configure_file(
   configuration : conf
   )
 
+time_date_ch = custom_target (
+  'gen-code-time-date',
+  input : '../data/com.kylinsec.Kiran.SystemDaemon.TimeDate.xml',
+  output : ['kiran-time-date-gen.h', 'kiran-time-date-gen.c'],
+  command : [find_program('gdbus-codegen'),
+             '--c-namespace', 'Kiran',
+             '--interface-prefix', 'com.kylinsec.Kiran.SystemDaemon',
+             '--generate-c-code', 'kiran-time-date-gen',
+             '--output-directory', 'src/',
+             '@INPUT@'],
+  build_by_default: true
+)
+
 
 executable('kiran-calendar-test',
   'kiran-calendar-test.c',
@@ -40,6 +53,7 @@ executable('kiran-clock-test',
   'kiran-clock.c',
   'kiran-calendar-window.c',
   'common.c',
+  time_date_ch[1],
   install : false,
   c_args: '-g',
   dependencies : [glib_dep, gobject_dep, gtk_dep, lundate_dep]
@@ -51,6 +65,7 @@ executable('kiran-clock-applet',
   'kiran-clock.c',
   'kiran-calendar-window.c',
   'common.c',
+  time_date_ch[1],
   install : true,
   install_dir: libexecdir,
   dependencies : [glib_dep, gobject_dep, gtk_dep, lundate_dep, libmatepanelapplet_dep]

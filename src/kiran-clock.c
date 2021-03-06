@@ -1,5 +1,6 @@
 #include "kiran-clock.h"
 #include "common.h"
+#include "kiran-time-date-gen.h"
 
 #define CALENDAR_SCHEMA "com.unikylin.Kiran.kiran-calendar"
 #define KEY_CLOCK_FORMAT "clock-format"
@@ -26,6 +27,15 @@ struct _KiranClockPrivate
     ClockFormat clock_format;
     
     GSettings *settings;
+
+    GCancellable  *cancellable;
+    gchar         *bus_name;
+    gchar         *object_path;
+    guint          name_id;
+
+    KiranTimeDate *proxy; 
+    GHashTable *long_date_format_format_table;
+    GHashTable *short_date_format_format_table;
 };
 
 static void kiran_clock_finalize        (GObject *object);
@@ -41,6 +51,37 @@ static gboolean kiran_clock_leave_notify (GtkWidget        *widget,
                                           GdkEventCrossing *event);
 
 G_DEFINE_TYPE_WITH_PRIVATE (KiranClock, kiran_clock, GTK_TYPE_TOGGLE_BUTTON)
+
+static void
+kiran_clock_update_property (KiranClock *clock)
+{
+    KiranClockPrivate *priv;
+    gchar *format;
+    gint index;
+
+    priv = kiran_clock_get_instance_private (clock);
+
+    index = kiran_time_date_get_date_long_format_index (priv->proxy);
+    format = g_hash_table_lookup(priv->long_date_format_format_table, GINT_TO_POINTER(index));
+    if (format)
+    {
+        g_free ( priv->long_date_format);
+        priv->long_date_format = g_strdup(format);
+    }
+
+    index = kiran_time_date_get_date_short_format_index (priv->proxy);
+    format = g_hash_table_lookup(priv->short_date_format_format_table, GINT_TO_POINTER(index));
+    if (format)
+    {
+        g_free ( priv->short_date_format);
+        priv->short_date_format = g_strdup(format);
+    }
+
+    priv->clock_format = kiran_time_date_get_hour_format (priv->proxy);
+    priv->show_second = kiran_time_date_get_seconds_showing (priv->proxy);
+
+    kiran_clock_refresh (clock);
+}
 
 static void
 kiran_clock_class_init (KiranClockClass *class)
@@ -159,6 +200,173 @@ show_seconds_changed (GSettings    *settings,
 }
 
 static void
+get_long_date_format_list_cb (GObject      *source_object,
+                              GAsyncResult *res,
+                              gpointer      user_data)
+{
+    GError *error;
+    KiranClock *clock;
+    KiranClockPrivate *priv;
+    gchar **strokes;
+    gsize i;
+  
+    clock = KIRAN_CLOCK (user_data);
+    priv = kiran_clock_get_instance_private (clock);
+
+    error = NULL;
+    kiran_time_date_call_get_date_format_list_finish (KIRAN_TIME_DATE (source_object),
+  		  				    &strokes, res, &error);
+  
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    {
+        g_error_free (error);
+        return;
+    }
+  
+    if (error != NULL)
+    {
+        g_warning ("%s", error->message);
+        g_error_free (error);
+        return;
+    }
+
+    for (i = 0; strokes && strokes[i]; i++)
+    {
+	 g_hash_table_insert (priv->long_date_format_format_table, GINT_TO_POINTER(i), g_strdup(strokes[i]));
+    }
+
+    kiran_clock_update_property (clock);
+}
+
+static void
+get_short_date_format_list_cb (GObject      *source_object,
+                              GAsyncResult *res,
+                              gpointer      user_data)
+{
+    GError *error;
+    KiranClock *clock;
+    KiranClockPrivate *priv;
+    gchar **strokes;
+    gsize i;
+  
+    clock = KIRAN_CLOCK (user_data);
+    priv = kiran_clock_get_instance_private (clock);
+
+    error = NULL;
+    kiran_time_date_call_get_date_format_list_finish (KIRAN_TIME_DATE (source_object),
+  		  				    &strokes, res, &error);
+  
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    {
+        g_error_free (error);
+        return;
+    }
+  
+    if (error != NULL)
+    {
+        g_warning ("%s", error->message);
+        g_error_free (error);
+        return;
+    }
+
+    for (i = 0; strokes && strokes[i]; i++)
+    {
+	 g_hash_table_insert (priv->short_date_format_format_table, GINT_TO_POINTER(i), g_strdup(strokes[i]));
+    }
+
+    kiran_clock_update_property (clock);
+}
+
+static void
+properties_changed (KiranTimeDate *proxy, 
+		   GVariant       *change_properties,
+		   GStrv          invalidated_properties,
+		   gpointer       user_data)
+{
+    KiranClock *clock;
+
+    clock = KIRAN_CLOCK (user_data);
+    kiran_clock_update_property (clock);
+}
+
+static void
+proxy_ready_cb (GObject      *source_object,
+                GAsyncResult *res,
+                gpointer      user_data)
+{
+    KiranTimeDate *proxy;
+    GError *error;
+    KiranClock *clock;
+    KiranClockPrivate *priv;
+
+    clock = KIRAN_CLOCK (user_data);
+    priv = kiran_clock_get_instance_private (clock);
+  
+    error = NULL;
+    proxy = kiran_time_date_proxy_new_finish (res, &error);
+  
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    {
+        g_error_free (error);
+        return;
+    }
+  
+    priv->proxy = proxy;
+  
+    if (error)
+    {
+        g_warning ("%s", error->message);
+        g_error_free (error);
+        return;
+    }
+ 
+    g_signal_connect(proxy, 
+		     "g-properties-changed", 
+		     G_CALLBACK (properties_changed), clock);
+
+    kiran_time_date_call_get_date_format_list (priv->proxy,
+		    			       0,
+					       priv->cancellable,
+					       get_long_date_format_list_cb,
+					       clock);
+
+    kiran_time_date_call_get_date_format_list (priv->proxy,
+		    			       1,
+					       priv->cancellable,
+					       get_short_date_format_list_cb,
+					       clock);
+}
+
+static void
+name_appeared_cb (GDBusConnection *connection,
+                  const gchar     *name,
+                  const gchar     *name_owner,
+                  gpointer         user_data)
+{
+    KiranClock *clock;
+    KiranClockPrivate *priv;
+
+    clock = KIRAN_CLOCK (user_data);
+    priv = kiran_clock_get_instance_private (clock);
+
+    kiran_time_date_proxy_new (connection, G_DBUS_PROXY_FLAGS_NONE,
+                                priv->bus_name, priv->object_path,
+                                priv->cancellable, proxy_ready_cb, clock);
+}
+
+static void
+name_vanished_cb (GDBusConnection *connection,
+                  const gchar     *name,
+                  gpointer         user_data)
+{
+    KiranClock *clock;
+
+    clock = KIRAN_CLOCK (user_data);
+
+    g_clear_object (&clock->priv->proxy);
+}
+
+static void
 kiran_clock_init (KiranClock *clock)
 {
     KiranClockPrivate *priv;
@@ -169,6 +377,9 @@ kiran_clock_init (KiranClock *clock)
 
     time (&timet);
     localtime_r (&timet, &priv->time);
+
+    priv->long_date_format_format_table = g_hash_table_new_full (NULL, NULL, NULL, g_free);
+    priv->short_date_format_format_table = g_hash_table_new_full (NULL, NULL, NULL, g_free);
 
     priv->settings = g_settings_new (CALENDAR_SCHEMA);
 
@@ -183,6 +394,14 @@ kiran_clock_init (KiranClock *clock)
     g_signal_connect (priv->settings, "changed::" KEY_SHOW_SECONDS, G_CALLBACK (show_seconds_changed), clock);
 
     priv->is_hover = FALSE;
+
+    priv->cancellable = g_cancellable_new ();
+    priv->bus_name =g_strdup ("com.kylinsec.Kiran.SystemDaemon.TimeDate");
+    priv->object_path =g_strdup ("/com/kylinsec/Kiran/SystemDaemon/TimeDate");
+    priv->name_id = g_bus_watch_name (G_BUS_TYPE_SYSTEM, priv->bus_name,
+                                    G_BUS_NAME_WATCHER_FLAGS_NONE,
+                                    name_appeared_cb, name_vanished_cb,
+                                    clock, NULL);
 }
 
 static void 
@@ -194,14 +413,29 @@ kiran_clock_finalize (GObject *object)
         g_object_unref (priv->settings);
     priv->settings = NULL;
 
+    if (priv->name_id > 0)
+    {
+          g_bus_unwatch_name (priv->name_id);
+          priv->name_id = 0;
+    }
+
     if (priv->refresh_timeout)
     {
         g_source_remove (priv->refresh_timeout);
         priv->refresh_timeout = 0;
     }
 
+    g_cancellable_cancel (priv->cancellable);
+    g_clear_object (&priv->cancellable);
+    g_clear_object (&priv->proxy);
+
     g_free ( priv->long_date_format);
     g_free ( priv->short_date_format);
+    g_free ( priv->bus_name);
+    g_free ( priv->object_path);
+
+    g_hash_table_destroy(priv->long_date_format_format_table);
+    g_hash_table_destroy(priv->short_date_format_format_table);
 
     G_OBJECT_CLASS (kiran_clock_parent_class)->finalize (object);
 }
