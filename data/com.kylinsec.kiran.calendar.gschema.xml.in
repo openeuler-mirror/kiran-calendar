@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <enum id="com.unikylin.Kiran.kiran-calendar.ClockFormat">
+  <enum id="com.kylinsec.kiran.calendar.ClockFormat">
     <value nick="12-hour" value="0"/>
     <value nick="24-hour" value="1"/>
   </enum>
-  <schema id="com.unikylin.Kiran.kiran-calendar" path="/com/unikylin/kiran/kiran-calendar/">
-    <key name="clock-format" enum="com.unikylin.Kiran.kiran-calendar.ClockFormat">
+  <schema id="com.kylinsec.kiran.calendar" path="/com/kylinsec/kiran/calendar/">
+    <key name="clock-format" enum="com.kylinsec.kiran.calendar.ClockFormat">
       <default>'24-hour'</default>
       <summary>Hour format</summary>
       <description>This key specifies the hour format used by the calendar applet. Possible values are "12-hour", "24-hour".</description>

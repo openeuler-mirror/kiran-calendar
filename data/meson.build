@@ -29,8 +29,8 @@ configure_file(
 
 schemaconf = configuration_data()
 configure_file (
-    input: 'com.unikylin.Kiran.kiran-calendar.gschema.xml.in',
-    output: 'com.unikylin.Kiran.kiran-calendar.gschema.xml',
+    input: 'com.kylinsec.kiran.calendar.gschema.xml.in',
+    output: 'com.kylinsec.kiran.calendar.gschema.xml',
     configuration: schemaconf,
     install_dir: schemadir
 )

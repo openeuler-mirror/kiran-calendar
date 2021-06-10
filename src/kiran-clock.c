@@ -2,7 +2,7 @@
 #include "common.h"
 #include "kiran-time-date-gen.h"
 
-#define CALENDAR_SCHEMA "com.unikylin.Kiran.kiran-calendar"
+#define CALENDAR_SCHEMA "com.kylinsec.kiran.calendar"
 #define KEY_CLOCK_FORMAT "clock-format"
 #define KEY_LONG_DATE_FORMAT  "long-date-format"
 #define KEY_SHORT_DATE_FORMAT  "short-date-format"
