@@ -1732,9 +1732,25 @@ calendar_setting_button_press (KiranCalendar  *calendar,
 {
     GError *error = NULL;
 
-    if (!g_spawn_command_line_async ("kiran-timedate-manager", &error))
+    if (g_file_test("/usr/bin/kiran-timedate-manager", G_FILE_TEST_EXISTS))
     {
-	g_warning ("kiran calendar: %s\n", error->message);	
+        if (!g_spawn_command_line_async("/usr/bin/kiran-timedate-manager", &error))
+        {
+            g_warning("kiran calendar: %s\n", error->message);
+            g_error_free(error);
+        }
+    }
+    else if (g_file_test("/usr/bin/kiran-cpanel-launcher", G_FILE_TEST_EXISTS))
+    {
+        if (!g_spawn_command_line_async("/usr/bin/kiran-cpanel-launcher --cpanel-plugin kiran-cpanel-timedate", &error))
+        {
+            g_warning("kiran calendar: %s\n", error->message);
+            g_error_free(error);
+        }
+    }
+    else
+    {
+        g_warning("kiran calendar: luanch timedate setting programe failed!\n");
     }
 }
 
