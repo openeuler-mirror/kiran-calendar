@@ -20,6 +20,12 @@ schemadir = join_paths (datadir, 'glib-2.0', 'schemas')
 
 i18n  = import('i18n')
 
+if get_option('kiran_desktop')
+  panel_name = 'kiran-panel'
+else
+  panel_name = 'mate-panel'
+endif
+
 subdir('data')
 subdir('src')
 subdir('po')

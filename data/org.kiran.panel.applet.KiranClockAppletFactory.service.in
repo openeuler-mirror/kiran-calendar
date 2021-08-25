@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=org.kiran.panel.applet.KiranClockAppletFactory
+Exec=@libexecdir@/kiran-clock-applet

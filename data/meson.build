@@ -4,7 +4,7 @@ appletconf.set('IN_PROCESS', 'false')
 appletconf.set('libexecdir', libexecdir)
 appleatfile = 'org.mate.panel.KiranClockApplet.mate-panel-applet'
 
-appleatdir = join_paths (datadir, 'mate-panel/applets')
+appleatdir = join_paths (datadir, panel_name, 'applets')
 configure_file(
   input: appleatfile + '.in.in',
   output: appleatfile,
@@ -17,7 +17,12 @@ configure_file(
 serviceconf = configuration_data()
 serviceconf.set('libexecdir', libexecdir)
 
-sevicefile = 'org.mate.panel.applet.KiranClockAppletFactory.service'
+if (get_option('kiran_desktop'))
+  sevicefile = 'org.kiran.panel.applet.KiranClockAppletFactory.service'
+else
+  sevicefile = 'org.mate.panel.applet.KiranClockAppletFactory.service'
+endif
+
 serivedir = join_paths(datadir, 'dbus-1', 'services')
 configure_file(
   input: sevicefile + '.in',

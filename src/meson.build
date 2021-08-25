@@ -2,7 +2,12 @@ glib_dep = dependency('glib-2.0')
 gobject_dep = dependency('gobject-2.0')
 gtk_dep = dependency('gtk+-3.0')
 lundate_dep = dependency('lunar-date-3.0')
-libmatepanelapplet_dep = dependency('libmatepanelapplet-4.0')
+
+if get_option('kiran_desktop')
+  panelapplet_dep = dependency('libkiranpanelapplet-4.0')
+else
+  panelapplet_dep = dependency('libmatepanelapplet-4.0')
+endif
 
 # Configure data
 conf = configuration_data()
@@ -68,5 +73,5 @@ executable('kiran-clock-applet',
   time_date_ch[1],
   install : true,
   install_dir: libexecdir,
-  dependencies : [glib_dep, gobject_dep, gtk_dep, lundate_dep, libmatepanelapplet_dep]
+  dependencies : [glib_dep, gobject_dep, gtk_dep, lundate_dep, panelapplet_dep]
 )
