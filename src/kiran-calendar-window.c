@@ -12,12 +12,86 @@ static GObject *kiran_calendar_window_constructor (GType                  type,
 
 G_DEFINE_TYPE_WITH_PRIVATE (KiranCalendarWindow, kiran_calendar_window, GTK_TYPE_WINDOW)
 
+static gboolean
+kiran_calendar_window_grab(GtkWidget *widget)
+{
+    GdkGrabStatus status;
+    GdkDisplay *display;
+    GdkSeat *seat;
+
+    if (!gtk_widget_is_visible(widget))
+        return FALSE;
+
+    display = gtk_widget_get_display(widget);
+    seat = gdk_display_get_default_seat(display);
+
+    status = gdk_seat_grab(seat, gtk_widget_get_window(widget),
+                           GDK_SEAT_CAPABILITY_POINTER, TRUE,
+                           NULL, NULL, NULL, NULL);
+    return status == GDK_GRAB_SUCCESS;
+}
+
+static void
+kiran_calendar_window_ungrab(GtkWidget *widget)
+{
+    GdkDisplay *display;
+    GdkSeat *seat;
+
+    display = gtk_widget_get_display(widget);
+    seat = gdk_display_get_default_seat(display);
+
+    gdk_seat_ungrab(seat);
+}
+
+static gboolean
+kiran_calendar_window_map_event(GtkWidget *widget,
+                                   GdkEventAny *event)
+{
+    return kiran_calendar_window_grab(widget);
+}
+
+static gboolean
+kiran_calendar_window_unmap_event(GtkWidget *widget,
+                                     GdkEventAny *event)
+{
+    kiran_calendar_window_ungrab(widget);
+
+    return FALSE;
+}
+
+static gboolean
+kiran_calendar_window_button_press_event(GtkWidget *widget,
+                                            GdkEventButton *event)
+{
+    GdkWindow *window;
+    gint root_x, root_y;
+    gint width, height;
+
+    window = gtk_widget_get_window(widget);
+
+    gdk_window_get_origin(window, &root_x, &root_y);
+    width = gdk_window_get_width(window);
+    height = gdk_window_get_height(window);
+
+    if (event->x_root < root_x || event->x_root > root_x + width ||
+        event->y_root < root_y || event->y_root > root_y + height)
+    {
+        gtk_widget_hide(widget);
+    }
+
+    return FALSE;
+}
+
 static void
 kiran_calendar_window_class_init (KiranCalendarWindowClass *class)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS (class);
+    GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(class);
 
     gobject_class->constructor = kiran_calendar_window_constructor;
+    widget_class->map_event = kiran_calendar_window_map_event;
+    widget_class->unmap_event = kiran_calendar_window_unmap_event;
+    widget_class->button_press_event = kiran_calendar_window_button_press_event;
 }
 
 static void
