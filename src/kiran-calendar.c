@@ -388,7 +388,12 @@ kiran_calendar_init (KiranCalendar *calendar)
 #ifndef G_OS_WIN32
         tmp_time= (i+3)*86400;
         strftime (buffer, sizeof (buffer), "%a", gmtime (&tmp_time));
-        default_abbreviated_dayname[i] = g_locale_to_utf8 (buffer, -1, NULL, NULL, NULL);
+
+	/* 中文环境下不需要日期转换为uf8格式，已经对LC_TIME进行了设置 */
+	if (g_getenv("LANG") && g_strrstr(g_getenv ("LANG"), "zh_CN"))
+            default_abbreviated_dayname[i] = g_strdup(buffer);
+	else
+            default_abbreviated_dayname[i] = g_locale_to_utf8 (buffer, -1, NULL, NULL, NULL);
 #else
         if (!GetLocaleInfoW (GetThreadLocale (), LOCALE_SABBREVDAYNAME1 + (i+6)%7,
                              wbuffer, G_N_ELEMENTS (wbuffer)))
