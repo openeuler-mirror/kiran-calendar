@@ -1082,24 +1082,18 @@ calendar_paint_setting_btn (KiranCalendar *calendar,
     pixbuf_y = SETTING_BTN_TOP_DIS;
 
     if (priv->setting_btn_state == KIRAN_NORMAL)
-    {
-        gdk_cairo_set_source_pixbuf (cr, priv->setting_btn_svg, pixbuf_x, pixbuf_y);
-        cairo_paint (cr);
-    }
+        gtk_style_context_lookup_color(context, "calendar_setting_btn_normal_color", &color);
+    else if (priv->setting_btn_state == KIRAN_PRESS)
+        gtk_style_context_lookup_color(context, "calendar_setting_btn_press_color", &color);
     else
-    {
-	if (priv->setting_btn_state == KIRAN_PRESS)
-	    gtk_style_context_lookup_color(context, "calendar_setting_btn_press_color", &color);
-	else
-	    gtk_style_context_lookup_color(context, "calendar_setting_btn_hover_color", &color);
-
-        cairo_push_group (cr);
-        gdk_cairo_set_source_pixbuf (cr, priv->setting_btn_svg, pixbuf_x, pixbuf_y);
-        cairo_paint (cr);
-        pattern = cairo_pop_group (cr);
-        cairo_set_source_rgba(cr, color.red, color.green, color.blue, color.alpha);
-        cairo_mask (cr, pattern);
-    }
+        gtk_style_context_lookup_color(context, "calendar_setting_btn_hover_color", &color);
+    
+    cairo_push_group (cr);
+    gdk_cairo_set_source_pixbuf (cr, priv->setting_btn_svg, pixbuf_x, pixbuf_y);
+    cairo_paint (cr);
+    pattern = cairo_pop_group (cr);
+    cairo_set_source_rgba(cr, color.red, color.green, color.blue, color.alpha);
+    cairo_mask (cr, pattern);
 
     gtk_style_context_restore (context);
     cairo_restore (cr);
