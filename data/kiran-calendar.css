@@ -10,6 +10,7 @@
 @define-color calendar_background_border_color rgba(25, 25, 25, 1.0);
 @define-color calendar_setting_btn_hover_color rgba(86, 145, 252, 1.0);
 @define-color calendar_setting_btn_press_color rgba(51, 86, 150, 1.0);
+@define-color calendar_setting_btn_normal_color rgba(255, 255, 255, 1.0);
 
 kirancalendar 
 {

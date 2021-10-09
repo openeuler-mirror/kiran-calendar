@@ -388,7 +388,12 @@ kiran_calendar_init (KiranCalendar *calendar)
 #ifndef G_OS_WIN32
         tmp_time= (i+3)*86400;
         strftime (buffer, sizeof (buffer), "%a", gmtime (&tmp_time));
-        default_abbreviated_dayname[i] = g_locale_to_utf8 (buffer, -1, NULL, NULL, NULL);
+
+	/* 中文环境下不需要日期转换为uf8格式，已经对LC_TIME进行了设置 */
+	if (g_getenv("LANG") && g_strrstr(g_getenv ("LANG"), "zh_CN"))
+            default_abbreviated_dayname[i] = g_strdup(buffer);
+	else
+            default_abbreviated_dayname[i] = g_locale_to_utf8 (buffer, -1, NULL, NULL, NULL);
 #else
         if (!GetLocaleInfoW (GetThreadLocale (), LOCALE_SABBREVDAYNAME1 + (i+6)%7,
                              wbuffer, G_N_ELEMENTS (wbuffer)))
@@ -1082,24 +1087,18 @@ calendar_paint_setting_btn (KiranCalendar *calendar,
     pixbuf_y = SETTING_BTN_TOP_DIS;
 
     if (priv->setting_btn_state == KIRAN_NORMAL)
-    {
-        gdk_cairo_set_source_pixbuf (cr, priv->setting_btn_svg, pixbuf_x, pixbuf_y);
-        cairo_paint (cr);
-    }
+        gtk_style_context_lookup_color(context, "calendar_setting_btn_normal_color", &color);
+    else if (priv->setting_btn_state == KIRAN_PRESS)
+        gtk_style_context_lookup_color(context, "calendar_setting_btn_press_color", &color);
     else
-    {
-	if (priv->setting_btn_state == KIRAN_PRESS)
-	    gtk_style_context_lookup_color(context, "calendar_setting_btn_press_color", &color);
-	else
-	    gtk_style_context_lookup_color(context, "calendar_setting_btn_hover_color", &color);
-
-        cairo_push_group (cr);
-        gdk_cairo_set_source_pixbuf (cr, priv->setting_btn_svg, pixbuf_x, pixbuf_y);
-        cairo_paint (cr);
-        pattern = cairo_pop_group (cr);
-        cairo_set_source_rgba(cr, color.red, color.green, color.blue, color.alpha);
-        cairo_mask (cr, pattern);
-    }
+        gtk_style_context_lookup_color(context, "calendar_setting_btn_hover_color", &color);
+    
+    cairo_push_group (cr);
+    gdk_cairo_set_source_pixbuf (cr, priv->setting_btn_svg, pixbuf_x, pixbuf_y);
+    cairo_paint (cr);
+    pattern = cairo_pop_group (cr);
+    cairo_set_source_rgba(cr, color.red, color.green, color.blue, color.alpha);
+    cairo_mask (cr, pattern);
 
     gtk_style_context_restore (context);
     cairo_restore (cr);

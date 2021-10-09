@@ -58,7 +58,6 @@ kiran_clock_update_property (KiranClock *clock)
     KiranClockPrivate *priv;
     gchar *format;
     gint index;
-    gboolean show_second;
 
     priv = kiran_clock_get_instance_private (clock);
 
@@ -79,27 +78,7 @@ kiran_clock_update_property (KiranClock *clock)
     }
 
     priv->clock_format = kiran_time_date_get_hour_format (priv->proxy);
-    show_second = kiran_time_date_get_seconds_showing (priv->proxy);
-
-    if (priv->show_second != show_second)
-    {
-        gint timeout = 60000;
-
-	priv->show_second = show_second;
-
-        if (priv->show_second)
-            timeout = 1000;
-
-        if (priv->refresh_timeout)
-        {
-            g_source_remove (priv->refresh_timeout);
-        }
-
-        priv->refresh_timeout = gdk_threads_add_timeout (timeout,
-                                                       kiran_clock_refresh,
-                                                       clock);
-        g_source_set_name_by_id (priv->refresh_timeout, "[kiran]kiran_clock_refresh");
-    }
+    priv->show_second = kiran_time_date_get_seconds_showing (priv->proxy);
 
     kiran_clock_refresh (clock);
 }
@@ -199,23 +178,9 @@ show_seconds_changed (GSettings    *settings,
                       KiranClock   *clock)
 {
     KiranClockPrivate *priv;
-    gint timeout = 60000;
 
     priv = kiran_clock_get_instance_private (clock);
     priv->show_second = g_settings_get_boolean(priv->settings, KEY_SHOW_SECONDS);
-
-    if (priv->show_second)
-        timeout = 1000;
-
-    if (priv->refresh_timeout)
-    {
-        g_source_remove (priv->refresh_timeout);
-    }
-
-    priv->refresh_timeout = gdk_threads_add_timeout (timeout,
-                                                   kiran_clock_refresh,
-                                                   clock);
-    g_source_set_name_by_id (priv->refresh_timeout, "[kiran]kiran_clock_refresh");
 
     kiran_clock_refresh (clock);
 }
@@ -664,12 +629,7 @@ kiran_clock_map (GtkWidget *widget)
 
     if (!priv->refresh_timeout)
     {
-	gint timeout = 60000;
-        kiran_clock_refresh (clock);
-	if (priv->show_second)
-		timeout = 1000;
-
-        priv->refresh_timeout = gdk_threads_add_timeout (timeout,
+        priv->refresh_timeout = gdk_threads_add_timeout (1000,
         				           kiran_clock_refresh,
         				           clock);	
         g_source_set_name_by_id (priv->refresh_timeout, "[kiran]kiran_clock_refresh");

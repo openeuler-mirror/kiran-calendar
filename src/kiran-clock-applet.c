@@ -5,6 +5,7 @@
 #include "kiran-calendar-window.h"
 #include "config.h"
 #include <glib/gi18n.h>
+#include <locale.h>
 
 #define CLOCK_ICON "mate-panel-clock"
 
@@ -290,8 +291,17 @@ kiran_clock_factory (MatePanelApplet *applet,
     GdkDisplay *display;
     GFile *css_fp;
 
+    setlocale(LC_ALL, "");
+
+    /* 设置本地时间， 对于GB18030字符集和其它字符集合设置为UTF-8 */
+    if (g_getenv("LANG") && g_strrstr(g_getenv ("LANG"), "zh_CN"))
+    {
+        setlocale(LC_TIME, "zh_CN.UTF-8");
+    }
+
     bindtextdomain (GETTEXT_PACKAGE, KIRAN_CALENDAR_DATE_LOCALEDIR);
     textdomain (GETTEXT_PACKAGE);
+    bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 
     mate_panel_applet_set_flags (applet, MATE_PANEL_APPLET_EXPAND_MINOR | MATE_PANEL_APPLET_HAS_HANDLE);
 
