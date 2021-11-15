@@ -135,11 +135,9 @@ kiran_clock_class_init (KiranClockClass *class)
                                                              "Box width",
                                                              "Box width",
 							     -1, G_MAXINT,
-                                                             -1,
+                                                             100,
                                                              G_PARAM_READABLE));
 
-   
-    gtk_widget_class_set_css_name (widget_class, "kiranclock");
 };
 
 static void
@@ -407,6 +405,8 @@ kiran_clock_init (KiranClock *clock)
                                     G_BUS_NAME_WATCHER_FLAGS_NONE,
                                     name_appeared_cb, name_vanished_cb,
                                     clock, NULL);
+
+    gtk_widget_set_name(GTK_WIDGET(clock), "kiranclock");
 }
 
 static void 
@@ -460,10 +460,7 @@ kiran_clock_draw (GtkWidget *widget,
     gchar *markup;
     gchar *tcolor;
     gchar *tfont;
-
-    gtk_widget_style_get(widget,
-                         "text-color", &tcolor,
-                         NULL);
+    GdkRGBA color;
 
     gtk_widget_style_get(widget,
                          "text-font", &tfont,
@@ -475,26 +472,23 @@ kiran_clock_draw (GtkWidget *widget,
     context = gtk_widget_get_style_context (widget);
     gtk_style_context_save (context);
 
+    gtk_style_context_get_color (context,
+                                 GTK_STATE_NORMAL,
+                                 &color);
+
+    tcolor = rgba_to_rgb_string (&color);
+
     width = gtk_widget_get_allocated_width (widget);
     height = gtk_widget_get_allocated_height (widget);
 
     if (priv->is_hover)
     {
     	//draw background
-	GdkRectangle rect;
-	GdkRGBA color;
-
-        cairo_save (cr);
-
-        rect.x = 0;
-        rect.y = 0;
-        rect.width = width;
-        rect.height = height;
-	gtk_style_context_lookup_color(context, "clock_box_hover_color", &color);
-        paint_round_rectangle (cr, &rect, 0.33, 0.54, 0.98, 1, 1.0, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
-	
-        cairo_restore (cr);
+	gtk_render_background (context, 
+			       cr,
+			       0, 0, width, height);
     }
+
     if (priv->show_second)
     {
 	if (priv->clock_format == CLOCK_FORMAT_24)
@@ -605,8 +599,10 @@ kiran_clock_enter_notify (GtkWidget        *widget,
                           GdkEventCrossing *event)
 {
     KiranClockPrivate *priv = KIRAN_CLOCK (widget)->priv;
+    gtk_widget_set_state_flags(widget, GTK_STATE_FLAG_PRELIGHT, FALSE);
 
     priv->is_hover = TRUE;
+
     kiran_clock_refresh (widget);
 
     return TRUE;
@@ -617,6 +613,11 @@ kiran_clock_leave_notify (GtkWidget        *widget,
                           GdkEventCrossing *event)
 {
     KiranClockPrivate *priv = KIRAN_CLOCK (widget)->priv;
+    GtkStateFlags flags;
+
+    flags = gtk_widget_get_state_flags(widget);
+    flags = (GtkStateFlags)(flags & ~GTK_STATE_FLAG_PRELIGHT);
+    gtk_widget_set_state_flags(widget, flags, TRUE);
 
     priv->is_hover = FALSE;
     kiran_clock_refresh (widget);

@@ -54,7 +54,7 @@
 #define MONTH_TEXT_AREA_HEIGHT 28
 #define MONTH_TEXT_AREA_LEFT_DIS (HEADER_TEXT_LEFT_DIS + 64)
 
-#define DAY_NAME_LEFT_DIS 28
+#define DAY_NAME_LEFT_DIS 22
 #define DAY_NAME_TOP_DIS (HEADER_TOP_DIS + 36)
 
 #define SEPARATE_LINE_TOP_DIS_1 (DAY_NAME_TOP_DIS + 16 + 20) 
@@ -368,7 +368,6 @@ kiran_calendar_class_init (KiranCalendarClass *class)
                                                                 "",
                                                                 G_PARAM_READABLE));
 
-
     gtk_widget_class_set_css_name (widget_class, "kirancalendar");
 }
 
@@ -478,8 +477,8 @@ calendar_realize_arrows (KiranCalendar *calendar)
     x = HEADER_LEFT_DIS;
     w = ARROW_SPACE + ARROW_WIDTH;
     h = ARROW_HEIGHT;
-    attributes.x = allocation.x + x;
-    attributes.y = allocation.y + HEADER_TOP_DIS;
+    attributes.x = allocation.x + x - 1;
+    attributes.y = allocation.y + HEADER_TOP_DIS - 1;
     attributes.width = w;
     attributes.height = h;
 
@@ -493,8 +492,8 @@ calendar_realize_arrows (KiranCalendar *calendar)
     x = x + w + HEADER_ARROW_SPACE;
     w = ARROW_WIDTH;
     h = ARROW_HEIGHT;
-    attributes.x = allocation.x + x;
-    attributes.y = allocation.y + HEADER_TOP_DIS;
+    attributes.x = allocation.x + x - 1;
+    attributes.y = allocation.y + HEADER_TOP_DIS - 1;
     attributes.width = w;
     attributes.height = h;
     priv->arrow_win[ARROW_MONTH_PREV] = gdk_window_new (gtk_widget_get_window (widget),
@@ -506,8 +505,8 @@ calendar_realize_arrows (KiranCalendar *calendar)
     w = ARROW_SPACE + ARROW_WIDTH;
     h = ARROW_HEIGHT;
     x = CALENDA_WIDTH - HEADER_RIGHT_DIS - w;
-    attributes.x = allocation.x + x;
-    attributes.y = allocation.y + HEADER_TOP_DIS;
+    attributes.x = allocation.x + x - 2;
+    attributes.y = allocation.y + HEADER_TOP_DIS - 1;
     attributes.width = w;
     attributes.height = h;
     priv->arrow_win[ARROW_YEAR_NEXT] = gdk_window_new (gtk_widget_get_window (widget),
@@ -519,8 +518,8 @@ calendar_realize_arrows (KiranCalendar *calendar)
     w = ARROW_WIDTH;
     h = ARROW_HEIGHT;
     x = x - HEADER_ARROW_SPACE - w;
-    attributes.x = allocation.x + x;
-    attributes.y = allocation.y + HEADER_TOP_DIS;
+    attributes.x = allocation.x + x - 2;
+    attributes.y = allocation.y + HEADER_TOP_DIS - 1;
     attributes.width = w;
     attributes.height = h;
     priv->arrow_win[ARROW_MONTH_NEXT] = gdk_window_new (gtk_widget_get_window (widget),
@@ -623,8 +622,8 @@ kiran_calendar_realize(GtkWidget *widget)
                                          attributes_mask);
     gtk_widget_register_window (widget, priv->today_win);
 
-    attributes.x = allocation.x + (CALENDA_WIDTH - SETTING_BTN_RIGHT_DIS - SETTING_BTN_SVG_W);
-    attributes.y = allocation.y + SETTING_BTN_TOP_DIS;
+    attributes.x = allocation.x + (CALENDA_WIDTH - SETTING_BTN_RIGHT_DIS - SETTING_BTN_SVG_W) - 1;
+    attributes.y = allocation.y + SETTING_BTN_TOP_DIS - 1;
     priv->setting_btn_win = gdk_window_new (gtk_widget_get_window (widget),
                                          &attributes,
                                          attributes_mask);
@@ -870,9 +869,13 @@ calendar_paint_day (KiranCalendar *calendar,
     }
     else
     {
-	gtk_widget_style_get(GTK_WIDGET (calendar), 
-	         	     "day-current-month-color", &tcolor,
-			     NULL);
+        GdkRGBA color;
+
+        gtk_style_context_get_color (context,
+                                     GTK_STATE_NORMAL,
+                                     &color);
+
+        tcolor = rgba_to_rgb_string (&color);
 
 	if (priv->selected_day == day)
 	{
@@ -903,9 +906,17 @@ calendar_paint_day (KiranCalendar *calendar,
     if (priv->hover_day_row == row &&
         priv->hover_day_col == col)
     {
+	GdkRGBA color;
+
+        gtk_style_context_get_color (context,
+                                     GTK_STATE_PRELIGHT,
+                                     &color);
+
+	color.alpha = 0.1;
+
         day_rect.height = day_rect.height - DAY_ROW_SPACE;
-	gtk_style_context_lookup_color(context, "day_box_hover_color", &color);
 	paint_round_rectangle (cr, &day_rect, 0.33, 0.54, 0.98, 1.0, DAY_RECT_LINE_WIDTH, color.red, color.green, color.blue, color.alpha, 2, FALSE, TRUE);
+
 	day_rect.height = day_rect.height + DAY_ROW_SPACE;
     }
 
@@ -964,11 +975,14 @@ calendar_paint_main (KiranCalendar *calendar,
 static void calendar_paint_background (KiranCalendar *calendar, 
 			               cairo_t       *cr)
 {
-    GdkRGBA *bg_rgba = NULL;
     GtkStyleContext *context;
     GtkAllocation allocation;
     GdkRectangle rect;
     GdkRGBA color;
+    GdkRGBA bg_rgba;
+    GtkStateFlags state;
+    GValue value = G_VALUE_INIT;
+    gint border_radius;
 
     gtk_widget_get_allocation (GTK_WIDGET (calendar), &allocation);
     context = gtk_widget_get_style_context (GTK_WIDGET (calendar));
@@ -981,13 +995,28 @@ static void calendar_paint_background (KiranCalendar *calendar,
     rect.width = allocation.width;
     rect.height = allocation.height;
 
-    gtk_style_context_lookup_color (context, "calendar_background_border_color", &color);
-    gtk_style_context_get (context, gtk_style_context_get_state (context),
-                             "background-color", &bg_rgba,
-                              NULL);
+    state = gtk_widget_get_state_flags (GTK_WIDGET(calendar));
 
-    paint_round_rectangle (cr, &rect, color.red, color.green, color.blue, color.alpha, CALENDA_LINE_WIDTH, bg_rgba->red, bg_rgba->green, bg_rgba->blue, bg_rgba->alpha, 6, TRUE, TRUE);
-    
+    gtk_style_context_add_class (context, "background");
+    gtk_style_context_get_border_color (context,
+		                        state,
+			                &color);
+
+    gtk_style_context_get_background_color (context,
+		                            state,
+					    &bg_rgba);
+    gtk_style_context_get_property (context, 
+		                    "border-radius", 
+				    state,
+				    &value);
+
+    border_radius = g_value_get_int (&value);
+    g_value_unset (&value);
+
+    paint_round_rectangle (cr, &rect, 
+		           color.red, color.green, color.blue, color.alpha, 1, 
+		           bg_rgba.red, bg_rgba.green, bg_rgba.blue, bg_rgba.alpha, border_radius, 
+			   FALSE, TRUE);
     cairo_restore (cr);
     gtk_style_context_restore (context);
 }
@@ -1044,11 +1073,13 @@ calendar_paint_lunar (KiranCalendar *calendar,
         }
 	else
 	{
+	    GdkRGBA color;
 
-	    gtk_widget_style_get(GTK_WIDGET (calendar), 
-	   		    	 "today-calendar-color", &tcolor,
-				 NULL);
+            gtk_style_context_get_color (context, 
+			                 GTK_STATE_NORMAL,
+			                 &color);
 
+	    tcolor = rgba_to_rgb_string (&color);
 	}
 
 	markup = g_strconcat ("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
@@ -1093,20 +1124,28 @@ calendar_paint_setting_btn (KiranCalendar *calendar,
     gdouble pixbuf_x, pixbuf_y;
     GdkRGBA color;
     GtkStyleContext *context;
+    GtkAllocation allocation;
 
 
     if (!priv->setting_btn_svg)
 	return;
 
+    gtk_widget_get_allocation (GTK_WIDGET(calendar), &allocation);
+
     context = gtk_widget_get_style_context (GTK_WIDGET (calendar));
     cairo_save (cr);
     gtk_style_context_save (context);
 
-    pixbuf_x = CALENDA_WIDTH - SETTING_BTN_RIGHT_DIS - SETTING_BTN_SVG_W;
-    pixbuf_y = SETTING_BTN_TOP_DIS;
+    pixbuf_x = allocation.x + (CALENDA_WIDTH - SETTING_BTN_RIGHT_DIS - SETTING_BTN_SVG_W);
+    pixbuf_y = allocation.y + SETTING_BTN_TOP_DIS;
 
     if (priv->setting_btn_state == KIRAN_NORMAL)
-        gtk_style_context_lookup_color(context, "calendar_setting_btn_normal_color", &color);
+    {
+         gtk_style_context_get_color (context,
+                                      GTK_STATE_NORMAL,
+                                      &color);
+
+    }
     else if (priv->setting_btn_state == KIRAN_PRESS)
         gtk_style_context_lookup_color(context, "calendar_setting_btn_press_color", &color);
     else
@@ -1119,6 +1158,7 @@ calendar_paint_setting_btn (KiranCalendar *calendar,
     cairo_set_source_rgba(cr, color.red, color.green, color.blue, color.alpha);
     cairo_mask (cr, pattern);
 
+    cairo_pattern_destroy (pattern);
     gtk_style_context_restore (context);
     cairo_restore (cr);
 }
@@ -1172,54 +1212,74 @@ calendar_paint_arrows (KiranCalendar *calendar,
     GdkRGBA pmcolor;
     GdkRGBA nycolor;
     GdkRGBA nmcolor;
-    gint x;
+    gint x, y;
+    GtkAllocation allocation;
+
+    gtk_widget_get_allocation (GTK_WIDGET(calendar), &allocation);
 
     context = gtk_widget_get_style_context (GTK_WIDGET (calendar));
     cairo_save (cr);
     gtk_style_context_save (context);
-
 
     if (priv->prev_year_state == KIRAN_PRESS)
         gtk_style_context_lookup_color(context, "calendar_arrow_press_color", &pycolor);
     else if (priv->prev_year_state == KIRAN_HOVER)
         gtk_style_context_lookup_color(context, "calendar_arrow_hover_color", &pycolor);
     else
-        gtk_style_context_lookup_color(context, "calendar_arrow_normal_color", &pycolor);
+    {
+        gtk_style_context_get_color (context,
+                                     GTK_STATE_NORMAL,
+                                     &pycolor);
+    }
 
     if (priv->next_year_state == KIRAN_PRESS)
         gtk_style_context_lookup_color(context, "calendar_arrow_press_color", &nycolor);
     else if (priv->next_year_state == KIRAN_HOVER)
         gtk_style_context_lookup_color(context, "calendar_arrow_hover_color", &nycolor);
     else
-        gtk_style_context_lookup_color(context, "calendar_arrow_normal_color", &nycolor);
+    {
+        gtk_style_context_get_color (context,
+                                     GTK_STATE_NORMAL,
+                                     &nycolor);
+    }
 
     if (priv->prev_month_state == KIRAN_PRESS)
         gtk_style_context_lookup_color(context, "calendar_arrow_press_color", &pmcolor);
     else if (priv->prev_month_state == KIRAN_HOVER)
         gtk_style_context_lookup_color(context, "calendar_arrow_hover_color", &pmcolor);
     else
-        gtk_style_context_lookup_color(context, "calendar_arrow_normal_color", &pmcolor);
+    {
+        gtk_style_context_get_color (context,
+                                     GTK_STATE_NORMAL,
+                                     &pmcolor);
+    }
 
     if (priv->next_month_state == KIRAN_PRESS)
         gtk_style_context_lookup_color(context, "calendar_arrow_press_color", &nmcolor);
     else if (priv->next_month_state == KIRAN_HOVER)
         gtk_style_context_lookup_color(context, "calendar_arrow_hover_color", &nmcolor);
     else
-        gtk_style_context_lookup_color(context, "calendar_arrow_normal_color", &nmcolor);
+    {
+        gtk_style_context_get_color (context,
+                                     GTK_STATE_NORMAL,
+                                     &nmcolor);
+    }
 
-    x = HEADER_LEFT_DIS;
-    paint_one_arrow_with_color (cr, x, HEADER_TOP_DIS, ARROW_WIDTH, ARROW_HEIGHT, pycolor.red, pycolor.green, pycolor.blue, pycolor.alpha, TRUE); 
-    paint_one_arrow_with_color (cr, x + ARROW_SPACE, HEADER_TOP_DIS, ARROW_WIDTH, ARROW_HEIGHT, pycolor.red, pycolor.green, pycolor.blue, pycolor.alpha, TRUE); 
+    x = allocation.x + HEADER_LEFT_DIS;
+    y = allocation.y + HEADER_TOP_DIS;
+
+    paint_one_arrow_with_color (cr, x, y, ARROW_WIDTH, ARROW_HEIGHT, pycolor.red, pycolor.green, pycolor.blue, pycolor.alpha, TRUE); 
+    paint_one_arrow_with_color (cr, x + ARROW_SPACE, y, ARROW_WIDTH, ARROW_HEIGHT, pycolor.red, pycolor.green, pycolor.blue, pycolor.alpha, TRUE); 
 
     x = x + ARROW_SPACE + ARROW_WIDTH + HEADER_ARROW_SPACE;
-    paint_one_arrow_with_color (cr, x, HEADER_TOP_DIS, ARROW_WIDTH, ARROW_HEIGHT, pmcolor.red, pmcolor.green, pmcolor.blue, pmcolor.alpha, TRUE); 
+    paint_one_arrow_with_color (cr, x, y, ARROW_WIDTH, ARROW_HEIGHT, pmcolor.red, pmcolor.green, pmcolor.blue, pmcolor.alpha, TRUE); 
 
     x = CALENDA_WIDTH - HEADER_RIGHT_DIS - ARROW_WIDTH;
-    paint_one_arrow_with_color (cr, x, HEADER_TOP_DIS, ARROW_WIDTH, ARROW_HEIGHT, nycolor.red, nycolor.green, nycolor.blue, nycolor.alpha, FALSE); 
-    paint_one_arrow_with_color (cr, x - ARROW_SPACE, HEADER_TOP_DIS, ARROW_WIDTH, ARROW_HEIGHT, nycolor.red, nycolor.green, nycolor.blue, nycolor.alpha, FALSE); 
+    paint_one_arrow_with_color (cr, x, y, ARROW_WIDTH, ARROW_HEIGHT, nycolor.red, nycolor.green, nycolor.blue, nycolor.alpha, FALSE); 
+    paint_one_arrow_with_color (cr, x - ARROW_SPACE, y, ARROW_WIDTH, ARROW_HEIGHT, nycolor.red, nycolor.green, nycolor.blue, nycolor.alpha, FALSE); 
 
     x = x - HEADER_ARROW_SPACE - ARROW_WIDTH - ARROW_SPACE;
-    paint_one_arrow_with_color (cr, x, HEADER_TOP_DIS, ARROW_WIDTH, ARROW_HEIGHT, nmcolor.red, nmcolor.green, nmcolor.blue, nmcolor.alpha, FALSE); 
+    paint_one_arrow_with_color (cr, x, y, ARROW_WIDTH, ARROW_HEIGHT, nmcolor.red, nmcolor.green, nmcolor.blue, nmcolor.alpha, FALSE); 
 
     gtk_style_context_restore (context);
     cairo_restore (cr);
@@ -1245,10 +1305,9 @@ calendar_paint_header_text (KiranCalendar *calendar,
     gchar *tfont;
     GdkRGBA color;
     GdkRGBA ncolor;
+    GtkAllocation allocation;
 
-    gtk_widget_style_get(GTK_WIDGET (calendar), 
-	         	 "day-head-color", &tcolor,
-			 NULL);
+    gtk_widget_get_allocation (GTK_WIDGET(calendar), &allocation);
 
     gtk_widget_style_get(GTK_WIDGET (calendar), 
 	    	         "day-head-font", &tfont,
@@ -1259,8 +1318,18 @@ calendar_paint_header_text (KiranCalendar *calendar,
     context = gtk_widget_get_style_context (widget);
     gtk_style_context_save (context);
 
+    gtk_style_context_get_color (context,
+                                 GTK_STATE_NORMAL,
+                                 &color);
+
+    tcolor = rgba_to_rgb_string (&color);
+
     gtk_style_context_lookup_color(context, "day_input_entry_select_color", &color);
-    gtk_style_context_lookup_color(context, "day_input_entry_normal_color", &ncolor);
+
+    gtk_style_context_get_color (context,
+                                 GTK_STATE_NORMAL,
+                                 &ncolor);
+    ncolor.alpha = 0.1;
   
     if (priv->year_input)
     {
@@ -1286,8 +1355,8 @@ calendar_paint_header_text (KiranCalendar *calendar,
     logical_rect.width = year_text_length;
     logical_rect.height = year_text_height;
 
-    x_loc = HEADER_TEXT_LEFT_DIS;
-    y_loc = HEADER_TEXT_TOP_DIS;
+    x_loc = allocation.x + HEADER_TEXT_LEFT_DIS;
+    y_loc = allocation.y + HEADER_TEXT_TOP_DIS;
 
     if (!(g_getenv ("LANG") && g_strrstr (g_getenv ("LANG"), "zh_CN")))
 	x_loc = x_loc + 16;
@@ -1452,15 +1521,14 @@ calendar_paint_daynames (KiranCalendar *calendar,
     PangoRectangle logical_rect;
     gchar *markup;
     gint i;
-    gint x;
+    gint x, y;
     gint space;
     gchar *tcolor;
     gchar *tfont;
+    GdkRGBA color;
+    GtkAllocation allocation;
 
-    gtk_widget_style_get(GTK_WIDGET (calendar), 
-	         	 "day-names-color", &tcolor,
-			 NULL);
-
+    gtk_widget_get_allocation (GTK_WIDGET(calendar), &allocation);
     gtk_widget_style_get(GTK_WIDGET (calendar), 
 	    	         "day-names-font", &tfont,
 		         NULL);
@@ -1469,9 +1537,17 @@ calendar_paint_daynames (KiranCalendar *calendar,
 
     context = gtk_widget_get_style_context (widget);
     gtk_style_context_save (context);
+
+    gtk_style_context_get_color (context,
+			         GTK_STATE_NORMAL,
+                                 &color);
+
+    tcolor = rgba_to_rgb_string (&color);
     
     space = 0;
-    x = 0;
+    x = allocation.x;
+    y = allocation.y + DAY_NAME_TOP_DIS;
+
     for (i = 0; i < 7; i++)
     {
         gchar buffer[32];
@@ -1486,13 +1562,13 @@ calendar_paint_daynames (KiranCalendar *calendar,
 
         if (i == 0)
         {
-            x = DAY_NAME_LEFT_DIS;
-	    space = (CALENDA_WIDTH - 2 * DAY_NAME_LEFT_DIS - 7 * logical_rect.width) / 6;
+            x = x + DAY_NAME_LEFT_DIS;
+	    space = (CALENDA_WIDTH - 2 * x - 7 * logical_rect.width) / 6;
         }
         else
 	    x = x + space;
 
-        gtk_render_layout (context, cr, x, DAY_NAME_TOP_DIS, layout);
+        gtk_render_layout (context, cr, x, y, layout);
 	x = x + logical_rect.width;
 
         g_free (markup);
@@ -1511,17 +1587,31 @@ calendar_paint_separate_line (KiranCalendar *calendar,
 		              cairo_t       *cr,
 		              gint           top_dis)
 {
-    int width;
+    GdkRGBA color;
+    GtkStyleContext *context;
+    GtkAllocation allocation;
+    int x, y, width;
 
+    gtk_widget_get_allocation (GTK_WIDGET(calendar), &allocation);
+    context = gtk_widget_get_style_context (GTK_WIDGET (calendar));
     cairo_save (cr);
+    gtk_style_context_save (context);
 
-    cairo_set_source_rgba (cr, 0.92, 0.92, 0.94, 0.1);
+    gtk_style_context_get_color (context,
+                                 GTK_STATE_NORMAL,
+                                 &color);
+
+    cairo_set_source_rgba (cr, color.red, color.green, color.blue, 0.1);
     width = CALENDA_WIDTH - 2*SEPARATE_LINE_LR_DIS;
 
-    cairo_rectangle (cr, SEPARATE_LINE_LR_DIS, top_dis, width, 1);
+    x = allocation.x + SEPARATE_LINE_LR_DIS;
+    y = allocation.y + top_dis;  
+
+    cairo_rectangle (cr, x , y, width, 1);
     cairo_fill (cr);
 
     cairo_restore (cr);
+    gtk_style_context_restore (context);
 }
 
 static gboolean
@@ -1530,7 +1620,7 @@ kiran_calendar_draw (GtkWidget *widget,
 {
     KiranCalendar *calendar = KIRAN_CALENDAR (widget);
 
-    calendar_paint_background (calendar, cr);
+//    calendar_paint_background (calendar, cr);
     calendar_paint_lunar (calendar, cr);
     calendar_paint_setting_btn (calendar, cr);
     calendar_paint_separate_line (calendar, cr, SEPARATE_LINE_TOP_DIS);

@@ -14,7 +14,8 @@
 
 kirancalendar 
 {
-  background-color: rgba(25, 25, 25, 1); 
+  border-radius: 6px;
+  border-width: 1px;
   -KiranCalendar-today-calendar-color: '#ffffff'; 
   -KiranCalendar-today-calendar-button-normal-color: '#568bfc'; 
   -KiranCalendar-today-calendar-button-press-color:  '#284fa3'; 
@@ -30,9 +31,16 @@ kirancalendar
   -KiranCalendar-day-head-font: 'Noto Sans CJK SC Regular 11'; 
 }
 
-kiranclock
+#kiranclock
 {
+    border-radius: 0px;
     -KiranClock-text-color: '#ffffff';
     -KiranClock-text-font: 'Noto Sans CJK SC Regular 10';
     -KiranClock-box-width: 100px;
+}
+
+#calendarWindow
+{
+  border-radius: 6px;
+  border-width: 1px;
 }

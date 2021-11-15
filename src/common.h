@@ -37,4 +37,6 @@ void paint_round_rectangle (cairo_t       *cr,
                             gboolean       line,
                             gboolean       fill);
 
+gchar *rgba_to_rgb_string (GdkRGBA *color);
+
 #endif /* __COMMON_H__ */

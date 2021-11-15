@@ -61,3 +61,15 @@ paint_round_rectangle (cairo_t       *cr,
         cairo_stroke (cr);
     }
 }
+
+gchar *
+rgba_to_rgb_string (GdkRGBA *color)
+{
+    int r, g, b;
+
+    r =  color->red * 255;
+    g =  color->green * 255;
+    b =  color->blue * 255;
+
+    return g_strdup_printf ("#%02x%02x%02x", r, g, b);
+}
