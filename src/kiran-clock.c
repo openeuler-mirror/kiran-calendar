@@ -379,6 +379,7 @@ kiran_clock_init (KiranClock *clock)
     priv->refresh_timeout = 0;
 
     time (&timet);
+    localtime (&timet);
     localtime_r (&timet, &priv->time);
 
     priv->long_date_format_format_table = g_hash_table_new_full (NULL, NULL, NULL, g_free);
@@ -586,6 +587,7 @@ kiran_clock_refresh (gpointer data)
     time_t timet;
 
     time (&timet);
+    localtime (&timet);
     localtime_r (&timet, &priv->time);
     kiran_clock_update_tooltip (clock);
 
