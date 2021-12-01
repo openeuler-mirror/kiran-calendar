@@ -2646,7 +2646,15 @@ calendar_compute_days (KiranCalendar *calendar)
             gchar *value;
             priv->day[row][col] = day;
             priv->day_month[row][col] = MONTH_NEXT;
-            value = get_lundar_strftime (priv->lundate, year, month + 1, day, 12, "%(RI)");
+	    if (month == 12)
+	    {
+		/* 计算下一年一月的农历 */
+                value = get_lundar_strftime (priv->lundate, year + 1, 1, day, 12, "%(RI)");
+	    }
+	    else
+	    {
+                value = get_lundar_strftime (priv->lundate, year, month + 1, day, 12, "%(RI)");
+	    }
             if (value)
             {
                 g_snprintf (priv->day_lunar[row][col], LUNAR_STR_LEN - 1, "%s", value);
