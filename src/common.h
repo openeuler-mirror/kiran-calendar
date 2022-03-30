@@ -22,21 +22,21 @@
 
 #include <gtk/gtk.h>
 
-void paint_round_rectangle (cairo_t       *cr,
-                            GdkRectangle  *rect,
-                            gdouble        line_red,
-                            gdouble        line_blue,
-                            gdouble        line_green,
-                            gdouble        line_width,
-                            gdouble        line_alpha,
-                            gdouble        fill_red,
-                            gdouble        fill_bule,
-                            gdouble        fill_green,
-                            gdouble        fill_alpha,
-                            gdouble        radius,
-                            gboolean       line,
-                            gboolean       fill);
+void paint_round_rectangle(cairo_t *cr,
+                           GdkRectangle *rect,
+                           gdouble line_red,
+                           gdouble line_blue,
+                           gdouble line_green,
+                           gdouble line_width,
+                           gdouble line_alpha,
+                           gdouble fill_red,
+                           gdouble fill_bule,
+                           gdouble fill_green,
+                           gdouble fill_alpha,
+                           gdouble radius,
+                           gboolean line,
+                           gboolean fill);
 
-gchar *rgba_to_rgb_string (GdkRGBA *color);
+gchar *rgba_to_rgb_string(GdkRGBA *color);
 
 #endif /* __COMMON_H__ */
