@@ -27,11 +27,11 @@ struct _KiranCalendarWindowPrivate
     GtkWidget *calendar;
 };
 
-static GObject *kiran_calendar_window_constructor (GType                  type,
-                             		           guint                  n_construct_properties,
-                            		           GObjectConstructParam *construct_properties);
+static GObject *kiran_calendar_window_constructor(GType type,
+                                                  guint n_construct_properties,
+                                                  GObjectConstructParam *construct_properties);
 
-G_DEFINE_TYPE_WITH_PRIVATE (KiranCalendarWindow, kiran_calendar_window, GTK_TYPE_WINDOW)
+G_DEFINE_TYPE_WITH_PRIVATE(KiranCalendarWindow, kiran_calendar_window, GTK_TYPE_WINDOW)
 
 static gboolean
 kiran_calendar_window_grab(GtkWidget *widget)
@@ -66,14 +66,14 @@ kiran_calendar_window_ungrab(GtkWidget *widget)
 
 static gboolean
 kiran_calendar_window_map_event(GtkWidget *widget,
-                                   GdkEventAny *event)
+                                GdkEventAny *event)
 {
     return kiran_calendar_window_grab(widget);
 }
 
 static gboolean
 kiran_calendar_window_unmap_event(GtkWidget *widget,
-                                     GdkEventAny *event)
+                                  GdkEventAny *event)
 {
     kiran_calendar_window_ungrab(widget);
 
@@ -82,7 +82,7 @@ kiran_calendar_window_unmap_event(GtkWidget *widget,
 
 static gboolean
 kiran_calendar_window_button_press_event(GtkWidget *widget,
-                                            GdkEventButton *event)
+                                         GdkEventButton *event)
 {
     GdkWindow *window;
     gint root_x, root_y;
@@ -116,24 +116,24 @@ kiran_calendar_window_draw(GtkWidget *widget,
     GValue value = G_VALUE_INIT;
     gint radius;
 
-    context = gtk_widget_get_style_context (GTK_WIDGET (widget));
-    gtk_style_context_save (context);
+    context = gtk_widget_get_style_context(GTK_WIDGET(widget));
+    gtk_style_context_save(context);
 
     gtk_widget_get_allocation(widget, &alloc);
-    state = gtk_widget_get_state_flags (widget);
+    state = gtk_widget_get_state_flags(widget);
 
-    gtk_style_context_add_class (context, "background");
-    gtk_style_context_get_background_color (context,
-                                            state,
-                                            &bg_color);
+    gtk_style_context_add_class(context, "background");
+    gtk_style_context_get_background_color(context,
+                                           state,
+                                           &bg_color);
 
-    gtk_style_context_get_property (context,
-                                    "border-radius",
-                                    state,
-                                    &value);
+    gtk_style_context_get_property(context,
+                                   "border-radius",
+                                   state,
+                                   &value);
 
-    radius = g_value_get_int (&value);
-    g_value_unset (&value);
+    radius = g_value_get_int(&value);
+    g_value_unset(&value);
 
     cairo_new_sub_path(cr);
     cairo_arc(cr, alloc.x + alloc.width - radius, alloc.y + radius, radius, -90 * degrees, 0 * degrees);
@@ -142,11 +142,11 @@ kiran_calendar_window_draw(GtkWidget *widget,
     cairo_arc(cr, alloc.x + radius, alloc.y + radius, radius, 180 * degrees, 270 * degrees);
     cairo_close_path(cr);
 
-    cairo_set_source_rgba (cr, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
-    cairo_fill_preserve (cr);
+    cairo_set_source_rgba(cr, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
+    cairo_fill_preserve(cr);
     cairo_clip(cr);
 
-    gtk_style_context_restore (context);
+    gtk_style_context_restore(context);
 
     if (GTK_WIDGET_CLASS(kiran_calendar_window_parent_class)->draw)
         ret = GTK_WIDGET_CLASS(kiran_calendar_window_parent_class)->draw(widget, cr);
@@ -155,9 +155,9 @@ kiran_calendar_window_draw(GtkWidget *widget,
 }
 
 static void
-kiran_calendar_window_class_init (KiranCalendarWindowClass *class)
+kiran_calendar_window_class_init(KiranCalendarWindowClass *class)
 {
-    GObjectClass *gobject_class = G_OBJECT_CLASS (class);
+    GObjectClass *gobject_class = G_OBJECT_CLASS(class);
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(class);
 
     gobject_class->constructor = kiran_calendar_window_constructor;
@@ -168,83 +168,76 @@ kiran_calendar_window_class_init (KiranCalendarWindowClass *class)
 }
 
 static void
-kiran_calendar_window_init (KiranCalendarWindow *window)
+kiran_calendar_window_init(KiranCalendarWindow *window)
 {
     KiranCalendarWindowPrivate *priv;
 
-    priv = window->priv = kiran_calendar_window_get_instance_private (window);
-    gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_NORMAL);
-    gtk_window_set_decorated (GTK_WINDOW (window), FALSE);
-    gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
-    gtk_window_stick (GTK_WINDOW (window));
-    gtk_window_set_title (GTK_WINDOW (window), "Kiran Calendar"); 
-    gtk_window_set_default_size (GTK_WINDOW (window), CALENDA_WIDTH, CALENDA_HEIGHT);
+    priv = window->priv = kiran_calendar_window_get_instance_private(window);
+    gtk_window_set_type_hint(GTK_WINDOW(window), GDK_WINDOW_TYPE_HINT_NORMAL);
+    gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
+    gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+    gtk_window_stick(GTK_WINDOW(window));
+    gtk_window_set_title(GTK_WINDOW(window), "Kiran Calendar");
+    gtk_window_set_default_size(GTK_WINDOW(window), CALENDA_WIDTH, CALENDA_HEIGHT);
     gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
     gtk_window_set_skip_taskbar_hint(GTK_WINDOW(window), TRUE);
     gtk_window_set_skip_pager_hint(GTK_WINDOW(window), TRUE);
-
 }
 
-static 
-void tran_setup (GtkWidget *window)
+static void tran_setup(GtkWidget *window)
 {
     GdkScreen *screen;
     GdkVisual *visual;
 
-    gtk_widget_set_app_paintable (window, TRUE);
-    screen = gdk_screen_get_default ();
-    visual = gdk_screen_get_rgba_visual (screen);
+    gtk_widget_set_app_paintable(window, TRUE);
+    screen = gdk_screen_get_default();
+    visual = gdk_screen_get_rgba_visual(screen);
 
-    if (visual != NULL && gdk_screen_is_composited (screen))
+    if (visual != NULL && gdk_screen_is_composited(screen))
     {
-        gtk_widget_set_visual (window, visual);
+        gtk_widget_set_visual(window, visual);
     }
 }
 
 static GObject *
-kiran_calendar_window_constructor (GType                  type,
-                                   guint                  n_construct_properties,
-                                   GObjectConstructParam *construct_properties)
+kiran_calendar_window_constructor(GType type,
+                                  guint n_construct_properties,
+                                  GObjectConstructParam *construct_properties)
 {
-    GObject        *obj;
+    GObject *obj;
     KiranCalendarWindow *win;
     GtkWidget *frame;
 
-    obj = G_OBJECT_CLASS (kiran_calendar_window_parent_class)->constructor (type,
-                                                                      n_construct_properties,
-                                                                      construct_properties);
-    win = KIRAN_CALENDAR_WINDOW (obj);
+    obj = G_OBJECT_CLASS(kiran_calendar_window_parent_class)->constructor(type, n_construct_properties, construct_properties);
+    win = KIRAN_CALENDAR_WINDOW(obj);
     gtk_widget_set_name(GTK_WIDGET(win), "calendarWindow");
 
-    tran_setup (GTK_WIDGET (win));
+    tran_setup(GTK_WIDGET(win));
 
-    frame = gtk_frame_new (NULL);
-    gtk_widget_show (frame);
-    gtk_container_add (GTK_CONTAINER (win), frame);
+    frame = gtk_frame_new(NULL);
+    gtk_widget_show(frame);
+    gtk_container_add(GTK_CONTAINER(win), frame);
 
-    win->priv->calendar = kiran_calendar_new ();  
-    gtk_widget_show (GTK_WIDGET (win->priv->calendar));
-    gtk_container_add (GTK_CONTAINER (frame), win->priv->calendar);
+    win->priv->calendar = kiran_calendar_new();
+    gtk_widget_show(GTK_WIDGET(win->priv->calendar));
+    gtk_container_add(GTK_CONTAINER(frame), win->priv->calendar);
 
     return obj;
 }
 
 GtkWidget *
-kiran_calendar_window_new (void)
+kiran_calendar_window_new(void)
 {
-    return g_object_new (KIRAN_TYPE_CALENDAR_WINDOW, NULL);
+    return g_object_new(KIRAN_TYPE_CALENDAR_WINDOW, NULL);
 }
 
-void 
-kiran_calendar_window_show (KiranCalendarWindow *window)
+void kiran_calendar_window_show(KiranCalendarWindow *window)
 {
-    
-    kiran_calendar_refresh (KIRAN_CALENDAR (window->priv->calendar));
-    gtk_widget_show (GTK_WIDGET (window));
+    kiran_calendar_refresh(KIRAN_CALENDAR(window->priv->calendar));
+    gtk_widget_show(GTK_WIDGET(window));
 }
 
-void 
-kiran_calendar_window_hide (KiranCalendarWindow *window)
+void kiran_calendar_window_hide(KiranCalendarWindow *window)
 {
-   gtk_widget_hide (GTK_WIDGET (window));
+    gtk_widget_hide(GTK_WIDGET(window));
 }
