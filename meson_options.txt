@@ -1,0 +1,1 @@
+option('kiran_desktop', type : 'boolean', value : false, description : 'build base kiran desktop environment')

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <enum id="com.kylinsec.kiran.calendar.ClockFormat">
+    <value nick="12-hour" value="0"/>
+    <value nick="24-hour" value="1"/>
+  </enum>
+  <schema id="com.kylinsec.kiran.calendar" path="/com/kylinsec/kiran/calendar/">
+    <key name="clock-format" enum="com.kylinsec.kiran.calendar.ClockFormat">
+      <default>'24-hour'</default>
+      <summary>Hour format</summary>
+      <description>This key specifies the hour format used by the calendar applet. Possible values are "12-hour", "24-hour".</description>
+    </key>
+    <key name="long-date-format" type="s">
+      <default>''</default>
+      <summary>Long Date format</summary>
+      <description>This key specifies the long date format used by the calendar applet.Example, "%A, %m %d, %Y"</description>
+    </key>
+    <key name="short-date-format" type="s">
+      <default>''</default>
+      <summary>Short Date format</summary>
+      <description>This key specifies the short date format used by the calendar applet. Example, "%Y/%m/%d"</description>
+    </key>
+    <key name="show-seconds" type="b">
+      <default>false</default>
+      <summary>Show time with seconds</summary>
+      <description>If true, display seconds in time.</description>
+    </key>
+  </schema>
+</schemalist>
