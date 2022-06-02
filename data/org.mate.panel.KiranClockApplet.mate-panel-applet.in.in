@@ -1,0 +1,16 @@
+[Applet Factory]
+Id=KiranClockAppletFactory
+InProcess=@IN_PROCESS@
+Location=@libexecdir@/kiran-clock-applet
+Name=Kiran Clock Applet Factory
+Name[zh_CN]=显示系统时间和日期
+Description=Factory for kiran clock applet
+Description[zh_CN]=显示系统时间和日期
+
+[KiranClockApplet]
+Name=KiranClock
+Name[zh_CN]=显示系统时间和日期
+Description=Get the current time and date
+Description[zh_CN]=显示系统时间和日期
+Icon=mate-panel-clock
+MateComponentId=OAFIID:MATE_KiranClockApplet;
