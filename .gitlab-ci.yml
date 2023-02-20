@@ -1,0 +1,8 @@
+variables:
+  RPM_BUILD_REQUIRES: 'cmake meson git lunar-date-devel gtk3-devel kiran-panel-devel kiran-panel-libs'
+
+include:
+  - project: 'os/gitlab-ci'
+    ref: main
+    file: '/cmake/cxx.gitlab-ci.yml'
+
