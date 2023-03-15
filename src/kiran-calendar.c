@@ -399,12 +399,14 @@ kiran_calendar_init(KiranCalendar *calendar)
     gtk_widget_set_has_window(GTK_WIDGET(calendar), TRUE);
 
     priv = calendar->priv = kiran_calendar_get_instance_private(calendar);
+    priv->week_start = WEEK_START;
 
     if (!default_abbreviated_dayname[0])
         for (i = 0; i < 7; i++)
         {
 #ifndef G_OS_WIN32
             tmp_time = (i + 3) * 86400;
+            tmp_time = (i + 3 + priv->week_start) * 86400;
             strftime(buffer, sizeof(buffer), "%a", gmtime(&tmp_time));
 
             /* 中文环境下不需要日期转换为uf8格式，已经对LC_TIME进行了设置 */

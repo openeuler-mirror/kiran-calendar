@@ -23,6 +23,7 @@ conf.set_quoted('BINDIR', join_paths(get_option('prefix'), get_option('bindir'))
 conf.set_quoted('SYSCONFDIR', join_paths(get_option('prefix'), get_option('sysconfdir')))
 conf.set_quoted('LOCALSTATEDIR', join_paths(get_option('prefix'), get_option('localstatedir')))
 conf.set_quoted('LIBEXECDIR', join_paths(get_option('prefix'), get_option('libexecdir')))
+conf.set('WEEK_START', get_option('week_start'))
 
 configure_file(
   output : 'config.h',
