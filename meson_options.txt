@@ -1,1 +1,2 @@
 option('kiran_desktop', type : 'boolean', value : false, description : 'build base kiran desktop environment')
+option('week_start', type : 'integer', value : 0, description : 'Set the first day of the week, ranging from 0 to 6, corresponding to Sunday, Monday, Tuesday, Wednesday, Thursday, Friday and Saturday')
