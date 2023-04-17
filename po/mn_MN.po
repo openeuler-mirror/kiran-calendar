@@ -1,0 +1,44 @@
+# kiran-calendar package simplified Chinese translation file.
+# Copyright (C) 2020  wangxiaoqing <wangxiaoqing@kylinos.com.cn>.
+# This file is distributed under the same license as the kiran-calendar package.
+# wangxiaoqing <wangxiaoqing@kylinos.com.cn>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: kiran-calendar\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-28 07:47+0800\n"
+"PO-Revision-Date: 2020-06-28 19:05+0700\n"
+"Last-Translator: wangxiaoqing <wangxiaoqing@kylinos.com.cn>\n"
+"Language-Team: wangxiaoqing <wangxiaoqing@kylinos.com.cn>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Country: CHINA\n"
+"X-Poedit-Language: Chinese\n"
+
+#: src/kiran-calendar.c:658
+#, c-format
+msgid "%d - %d"
+msgstr "%d - %d"
+
+#: src/kiran-calendar.c:1105
+msgid "Today"
+msgstr "Өнөөдөр"
+
+msgid "_About"
+msgstr "Ойролцоогоор"
+
+msgid "Clock"
+msgstr "Цаг"
+
+msgid "About Clock"
+msgstr "Цагны тухай"
+
+msgid "The Clock displays the current time and date"
+msgstr "Цаг нь одоогийн цаг, өдрийг харуулдаг"
+
+msgid "Copyright ©2020 KylinSec. All rights reserved."
+msgstr "Зохиогчийн эрх ©2020 KylinSec. Бүх эрх хадгалагдсан."
