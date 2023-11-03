@@ -219,6 +219,25 @@ destroy_clock(GtkWidget *widget,
 }
 
 static void
+calendar_unmap_event(GtkWidget *widget,
+                     GdkEvent *event,
+                     gpointer user_data)
+{
+    KiranClockData *kcd = user_data;
+
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(kcd->clock), FALSE);
+}
+
+static void
+calendar_unmap(GtkWidget *widget,
+               gpointer user_data)
+{
+    KiranClockData *kcd = user_data;
+
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(kcd->clock), FALSE);
+}
+
+static void
 applet_change_orient(MatePanelApplet *applet,
                      MatePanelAppletOrient orient,
                      KiranClockData *kcd)
@@ -271,6 +290,10 @@ fill_clock_applet(MatePanelApplet *applet)
     g_signal_connect(G_OBJECT(kcd->clock), "button-press-event", G_CALLBACK(button_press), kcd);
     g_signal_connect(G_OBJECT(kcd->clock), "toggled", G_CALLBACK(button_toggled), kcd);
     g_signal_connect(G_OBJECT(kcd->clock), "destroy", G_CALLBACK(destroy_clock), kcd);
+
+    // 修复：日历弹出时，使用快捷键 Ctrl+Alt+D 会导致日历再次无法弹出
+    g_signal_connect(G_OBJECT(kcd->calendar_window), "unmap", G_CALLBACK(calendar_unmap), kcd);
+    g_signal_connect(G_OBJECT(kcd->calendar_window), "unmap-event", G_CALLBACK(calendar_unmap_event), kcd);
 
     g_signal_connect(G_OBJECT(applet),
                      "change_orient",
