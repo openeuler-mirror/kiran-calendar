@@ -1,21 +1,21 @@
 /**
-* @Copyright (C) 2020 ~ 2021 KylinSec Co., Ltd. 
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; If not, see <http: //www.gnu.org/licenses/>. 
-*
-* Author:     wangxiaoqing <wangxiaoqing@kylinos.com.cn>
-*/
+ * @Copyright (C) 2020 ~ 2021 KylinSec Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; If not, see <http: //www.gnu.org/licenses/>.
+ *
+ * Author:     wangxiaoqing <wangxiaoqing@kylinos.com.cn>
+ */
 
 #include "kiran-clock.h"
 #include "common.h"
@@ -33,6 +33,13 @@ typedef enum
     CLOCK_FORMAT_24
 } ClockFormat;
 
+typedef enum
+{
+    DATE_BUFFER_TYPE,
+    TIME_BUFFER_TYPE,
+    DATE_TIME_BUFFER_TYPE_COUNT
+} DateTimeBufferType;
+
 struct _KiranClockPrivate
 {
     struct tm time;
@@ -40,7 +47,7 @@ struct _KiranClockPrivate
     gint refresh_timeout;
     gboolean is_hover;
 
-    //time and date settings
+    // time and date settings
     gboolean show_second;
     gchar *long_date_format;
     gchar *short_date_format;
@@ -56,6 +63,10 @@ struct _KiranClockPrivate
     KiranTimeDate *proxy;
     GHashTable *long_date_format_format_table;
     GHashTable *short_date_format_format_table;
+
+    // 存储上一次绘制的时间和日期
+    gchar *last_time_str;
+    gchar *last_date_str;
 };
 
 static void kiran_clock_finalize(GObject *object);
@@ -65,6 +76,7 @@ static void kiran_clock_destroy(GtkWidget *widget);
 static void kiran_clock_map(GtkWidget *widget);
 static void kiran_clock_unmap(GtkWidget *widget);
 static gboolean kiran_clock_refresh(gpointer data);
+static gboolean kiran_clock_timeout_refresh(gpointer data);
 static gboolean kiran_clock_enter_notify(GtkWidget *widget,
                                          GdkEventCrossing *event);
 static gboolean kiran_clock_leave_notify(GtkWidget *widget,
@@ -408,6 +420,9 @@ kiran_clock_init(KiranClock *clock)
                                      clock, NULL);
 
     gtk_widget_set_name(GTK_WIDGET(clock), "kiranclock");
+
+    priv->last_time_str = NULL;
+    priv->last_date_str = NULL;
 }
 
 static void
@@ -440,11 +455,60 @@ kiran_clock_finalize(GObject *object)
     g_free(priv->bus_name);
     g_free(priv->object_path);
 
+    g_free(priv->last_time_str);
+    g_free(priv->last_date_str);
+
     g_hash_table_destroy(priv->long_date_format_format_table);
     g_hash_table_destroy(priv->short_date_format_format_table);
 
     G_OBJECT_CLASS(kiran_clock_parent_class)->finalize(object);
 }
+
+// 获取当前显示的时间
+static void
+kiran_get_time_buffer(KiranClockPrivate *priv, gchar *buffer, int buf_size, DateTimeBufferType type)
+{
+    switch (type)
+    {
+    case DATE_BUFFER_TYPE:
+    {
+        if (g_strcmp0(priv->short_date_format, "") == 0)
+        {
+            // 默认格式
+            if (g_getenv("LANG") && g_strrstr(g_getenv("LANG"), "zh_CN"))
+                strftime(buffer, buf_size, "%Y/%m/%d", &(priv->time));
+            else
+                strftime(buffer, buf_size, "%m/%d/%Y", &(priv->time));
+        }
+        else
+        {
+            strftime(buffer, buf_size, priv->short_date_format, &(priv->time));
+        }
+    }
+    break;
+    case TIME_BUFFER_TYPE:
+    {
+        if (priv->show_second)
+        {
+            if (priv->clock_format == CLOCK_FORMAT_24)
+                strftime(buffer, buf_size, "%H:%M:%S", &(priv->time));
+            else
+                strftime(buffer, buf_size, "%p %l:%M:%S", &(priv->time));
+        }
+        else
+        {
+            if (priv->clock_format == CLOCK_FORMAT_24)
+                strftime(buffer, buf_size, "%H:%M", &(priv->time));
+            else
+                strftime(buffer, buf_size, "%p %l:%M", &(priv->time));
+        }
+    }
+    break;
+    default:
+        break;
+    }
+}
+
 static gboolean
 kiran_clock_draw(GtkWidget *widget,
                  cairo_t *cr)
@@ -484,26 +548,13 @@ kiran_clock_draw(GtkWidget *widget,
 
     if (priv->is_hover)
     {
-        //draw background
+        // draw background
         gtk_render_background(context,
                               cr,
                               0, 0, width, height);
     }
 
-    if (priv->show_second)
-    {
-        if (priv->clock_format == CLOCK_FORMAT_24)
-            strftime(buffer, sizeof(buffer), "%H:%M:%S", &(priv->time));
-        else
-            strftime(buffer, sizeof(buffer), "%p %l:%M:%S", &(priv->time));
-    }
-    else
-    {
-        if (priv->clock_format == CLOCK_FORMAT_24)
-            strftime(buffer, sizeof(buffer), "%H:%M", &(priv->time));
-        else
-            strftime(buffer, sizeof(buffer), "%p %l:%M", &(priv->time));
-    }
+    kiran_get_time_buffer(priv, buffer, sizeof(buffer), TIME_BUFFER_TYPE);
 
     markup = g_strconcat("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
 
@@ -512,18 +563,7 @@ kiran_clock_draw(GtkWidget *widget,
     pango_layout_set_markup(time_layout, markup, -1);
     g_free(markup);
 
-    if (g_strcmp0(priv->short_date_format, "") == 0)
-    {
-        //默认格式
-        if (g_getenv("LANG") && g_strrstr(g_getenv("LANG"), "zh_CN"))
-            strftime(buffer, sizeof(buffer), "%Y/%m/%d", &(priv->time));
-        else
-            strftime(buffer, sizeof(buffer), "%m/%d/%Y", &(priv->time));
-    }
-    else
-    {
-        strftime(buffer, sizeof(buffer), priv->short_date_format, &(priv->time));
-    }
+    kiran_get_time_buffer(priv, buffer, sizeof(buffer), DATE_BUFFER_TYPE);
 
     markup = g_strconcat("<span foreground=\"", tcolor, "\"", "font_desc=\"", tfont, "\">", buffer, "</span>", NULL);
     date_layout = gtk_widget_create_pango_layout(widget, buffer);
@@ -563,7 +603,7 @@ kiran_clock_update_tooltip(KiranClock *clock)
 
     if (g_strcmp0(priv->long_date_format, "") == 0)
     {
-        //默认格式
+        // 默认格式
         if (g_getenv("LANG") && g_strrstr(g_getenv("LANG"), "zh_CN"))
             strftime(buffer, sizeof(buffer), "%A,%Y年%m月%d日", &(priv->time));
         else
@@ -577,17 +617,63 @@ kiran_clock_update_tooltip(KiranClock *clock)
     gtk_widget_set_tooltip_text(GTK_WIDGET(clock), buffer);
 }
 
-static gboolean
-kiran_clock_refresh(gpointer data)
+static void
+kiran_clock_update_time(KiranClock *clock)
 {
-    KiranClock *clock = KIRAN_CLOCK(data);
     KiranClockPrivate *priv = clock->priv;
+
     time_t timet;
 
     time(&timet);
     localtime(&timet);
     localtime_r(&timet, &priv->time);
     kiran_clock_update_tooltip(clock);
+}
+
+static gboolean
+kiran_clock_timeout_refresh(gpointer data)
+{
+    gchar time_buffer[32];
+    gchar date_buffer[32];
+    gboolean time_changed = FALSE;
+    gboolean date_changed = FALSE;
+
+    KiranClock *clock = KIRAN_CLOCK(data);
+    KiranClockPrivate *priv = clock->priv;
+
+    kiran_clock_update_time(clock);
+
+    kiran_get_time_buffer(priv, time_buffer, sizeof(time_buffer), TIME_BUFFER_TYPE);
+    kiran_get_time_buffer(priv, date_buffer, sizeof(date_buffer), DATE_BUFFER_TYPE);
+
+    if (g_strcmp0(time_buffer, priv->last_time_str) != 0)
+    {
+        time_changed = TRUE;
+        g_free(priv->last_time_str);
+        priv->last_time_str = g_strdup(time_buffer);
+    }
+    if (g_strcmp0(date_buffer, priv->last_date_str) != 0)
+    {
+        date_changed = TRUE;
+        g_free(priv->last_date_str);
+        priv->last_date_str = g_strdup(date_buffer);
+    }
+
+    // 若需要显示的时间或日期改变，则刷新
+    if (time_changed || date_changed)
+    {
+        gtk_widget_queue_draw(GTK_WIDGET(clock));
+    }
+
+    return TRUE;
+}
+
+static gboolean
+kiran_clock_refresh(gpointer data)
+{
+    KiranClock *clock = KIRAN_CLOCK(data);
+
+    kiran_clock_update_time(clock);
 
     gtk_widget_queue_draw(GTK_WIDGET(clock));
 
@@ -650,9 +736,9 @@ kiran_clock_map(GtkWidget *widget)
     if (!priv->refresh_timeout)
     {
         priv->refresh_timeout = gdk_threads_add_timeout(1000,
-                                                        kiran_clock_refresh,
+                                                        kiran_clock_timeout_refresh,
                                                         clock);
-        g_source_set_name_by_id(priv->refresh_timeout, "[kiran]kiran_clock_refresh");
+        g_source_set_name_by_id(priv->refresh_timeout, "[kiran]kiran_clock_timeout_refresh");
     }
 }
 
@@ -672,7 +758,7 @@ kiran_clock_unmap(GtkWidget *widget)
 
 /**
  * kiran_clock_new
- * 
+ *
  * 创建一个新的 #KiranClock
  *
  * Returns: 一个新的 #KiranClock
