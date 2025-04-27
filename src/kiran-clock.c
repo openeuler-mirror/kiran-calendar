@@ -21,6 +21,8 @@
 #include "common.h"
 #include "kiran-time-date-gen.h"
 
+#include <sys/time.h>
+
 #define CALENDAR_SCHEMA "com.kylinsec.kiran.calendar"
 #define KEY_CLOCK_FORMAT "clock-format"
 #define KEY_LONG_DATE_FORMAT "long-date-format"
@@ -45,6 +47,7 @@ struct _KiranClockPrivate
     struct tm time;
 
     gint refresh_timeout;
+    gint align_timeout;
     gboolean is_hover;
 
     // time and date settings
@@ -389,6 +392,7 @@ kiran_clock_init(KiranClock *clock)
 
     priv = clock->priv = kiran_clock_get_instance_private(clock);
     priv->refresh_timeout = 0;
+    priv->align_timeout = 0;
 
     time(&timet);
     localtime(&timet);
@@ -438,6 +442,12 @@ kiran_clock_finalize(GObject *object)
     {
         g_bus_unwatch_name(priv->name_id);
         priv->name_id = 0;
+    }
+
+    if (priv->align_timeout)
+    {
+        g_source_remove(priv->align_timeout);
+        priv->align_timeout = 0;
     }
 
     if (priv->refresh_timeout)
@@ -625,21 +635,73 @@ kiran_clock_update_time(KiranClock *clock)
     time_t timet;
 
     time(&timet);
-    localtime(&timet);
     localtime_r(&timet, &priv->time);
     kiran_clock_update_tooltip(clock);
 }
 
 static gboolean
+kiran_clock_timeout_align(gpointer data)
+{
+    kiran_clock_timeout_refresh(data);
+
+    KiranClock *clock = KIRAN_CLOCK(data);
+    KiranClockPrivate *priv = clock->priv;
+
+    if (priv->refresh_timeout)
+    {
+        g_source_remove(priv->refresh_timeout);
+        priv->refresh_timeout = 0;
+    }
+
+    priv->refresh_timeout = gdk_threads_add_timeout(1000,
+                                                    kiran_clock_timeout_refresh,
+                                                    clock);
+    g_source_set_name_by_id(priv->refresh_timeout, "[kiran]kiran_clock_timeout_refresh");
+
+    return FALSE;  // 让align定时器停止
+}
+
+void kiran_clock_start_align(gpointer data)
+{
+    KiranClock *clock = KIRAN_CLOCK(data);
+    KiranClockPrivate *priv = clock->priv;
+
+    // 时间对齐
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    long ms = tv.tv_usec / 1000;
+    long delay = 1000 - ms;
+
+    if (priv->align_timeout)
+    {
+        g_source_remove(priv->align_timeout);
+        priv->align_timeout = 0;
+    }
+    priv->align_timeout = gdk_threads_add_timeout(delay, kiran_clock_timeout_align, clock);
+    g_source_set_name_by_id(priv->align_timeout, "[kiran]kiran_clock_timeout_align");
+}
+
+static gboolean
 kiran_clock_timeout_refresh(gpointer data)
 {
+    KiranClock *clock = KIRAN_CLOCK(data);
+    KiranClockPrivate *priv = clock->priv;
+
+    static int tick_count = 0;
+    tick_count++;
+    if (tick_count >= 60)
+    {
+        // 每60次，也就是大约1分钟，重新对齐时间
+        tick_count = 0;
+        kiran_clock_start_align(data);
+
+        return FALSE;  // 当前这个定时器停掉
+    }
+
     gchar time_buffer[32];
     gchar date_buffer[32];
     gboolean time_changed = FALSE;
     gboolean date_changed = FALSE;
-
-    KiranClock *clock = KIRAN_CLOCK(data);
-    KiranClockPrivate *priv = clock->priv;
 
     kiran_clock_update_time(clock);
 
@@ -716,6 +778,12 @@ kiran_clock_destroy(GtkWidget *widget)
 {
     KiranClockPrivate *priv = KIRAN_CLOCK(widget)->priv;
 
+    if (priv->align_timeout)
+    {
+        g_source_remove(priv->align_timeout);
+        priv->align_timeout = 0;
+    }
+
     if (priv->refresh_timeout)
     {
         g_source_remove(priv->refresh_timeout);
@@ -733,12 +801,9 @@ kiran_clock_map(GtkWidget *widget)
 
     GTK_WIDGET_CLASS(kiran_clock_parent_class)->map(widget);
 
-    if (!priv->refresh_timeout)
+    if (!priv->align_timeout)
     {
-        priv->refresh_timeout = gdk_threads_add_timeout(1000,
-                                                        kiran_clock_timeout_refresh,
-                                                        clock);
-        g_source_set_name_by_id(priv->refresh_timeout, "[kiran]kiran_clock_timeout_refresh");
+        kiran_clock_start_align(clock);
     }
 }
 
@@ -748,6 +813,12 @@ kiran_clock_unmap(GtkWidget *widget)
     KiranClockPrivate *priv = KIRAN_CLOCK(widget)->priv;
 
     GTK_WIDGET_CLASS(kiran_clock_parent_class)->unmap(widget);
+
+    if (priv->align_timeout)
+    {
+        g_source_remove(priv->align_timeout);
+        priv->align_timeout = 0;
+    }
 
     if (priv->refresh_timeout)
     {
