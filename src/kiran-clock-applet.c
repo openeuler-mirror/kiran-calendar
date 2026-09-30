@@ -202,8 +202,8 @@ button_toggled(GtkWidget *widget,
         kiran_calendar_window_hide(window);
     else
     {
-        kiran_calendar_window_show(window);
         position_calendar_window(kcd);
+        kiran_calendar_window_show(window);
     }
 }
 
